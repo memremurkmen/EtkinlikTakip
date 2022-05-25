@@ -16,7 +16,7 @@ namespace BusinessLayer.Concrete
         {
             _etkinlikDal = etkinlikDal;
         }
-        public Etkinlik GetById(int id)
+        public Etkinlik GetById(long id)
         {
             return _etkinlikDal.GetByID(id);
         }
@@ -28,7 +28,6 @@ namespace BusinessLayer.Concrete
 
         public void EtkinlikAdd(Etkinlik etkinlik)
         {
-            etkinlik.CreateTime = DateTime.Now;
             _etkinlikDal.Insert(etkinlik);
         }
 
@@ -42,7 +41,6 @@ namespace BusinessLayer.Concrete
 
         public void EtkinlikUpdate(Etkinlik etkinlik)
         {
-            etkinlik.UpdateTime = DateTime.Now;
             _etkinlikDal.Update(etkinlik);
         }
     }

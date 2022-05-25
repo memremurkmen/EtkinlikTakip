@@ -13,6 +13,6 @@ namespace BusinessLayer.Abstract
         void EtkinlikDelete(Etkinlik etkinlik);
         void EtkinlikUpdate(Etkinlik etkinlik);
         IList<Etkinlik> GetList();
-        Etkinlik GetById(int id);
+        Etkinlik GetById(long id);
     }
 }

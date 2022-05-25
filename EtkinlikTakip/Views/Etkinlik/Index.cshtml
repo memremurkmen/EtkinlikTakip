@@ -1,4 +1,7 @@
 ﻿@using EntityLayer.Concrete
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
 
 @{
     ViewData["Title"] = "Index";
@@ -11,14 +14,25 @@
         .StartTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 09, 00, 00))
         .EndTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 18, 00, 00))
         .Height(550)
+        .Toolbar(t => t.Search())
         .Editable(edit=>{
-            edit.Confirmation(true);
-            edit.Create(false);
-            @*edit.Update(false);*@
-            edit.Destroy(false);
-            edit.EditRecurringMode(SchedulerEditRecurringMode.Series);
+            if (HttpContextAccessor.HttpContext.Session.GetString("userRole") == "Personel")
+            {
+                edit.Confirmation(false);
+                edit.Create(false);
+                edit.Move(false);
+                edit.Resize(false);
+                edit.Destroy(false);
+                edit.EditRecurringMode(SchedulerEditRecurringMode.Occurrence);
+            }
             edit.TemplateId("customEditorTemplate");
         })
+        .EventTemplateId("customEventTemplate")
+        .Events(e =>
+        {
+            e.Edit("scheduler_edit");
+        })
+        .Timezone("Etc/UTC")
         .Footer(false)
         .Views(views =>
         {
@@ -26,8 +40,13 @@
             views.WeekView(week =>
             {
                 week.Selected(true);
+                
             });
-            views.MonthView();
+            views.MonthView(month => {
+                month.AdaptiveSlotHeight(true);
+                month.EventsPerDay(6);
+                @*month.EventHeight(75);*@
+            });
             views.YearView();
             views.AgendaView();
         })
@@ -37,6 +56,8 @@
             m.Id(f => f.ID);
             m.Field(f => f.Title).DefaultValue("Başlık yok");
             m.Field(f=> f.CreateTime).DefaultValue(DateTime.Now);
+                        @*m.Field(f=> f.StartTimezone).DefaultValue("Etc/UTC");
+            m.Field(f=> f.EndTimezone).DefaultValue("Etc/UTC");*@
         })
         .Read("Read", "Etkinlik")
         .Create("Create", "Etkinlik")
@@ -46,6 +67,26 @@
     )
 </div>
 
+<script>
+    function scheduler_edit(e) {
+        var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
+        if (role == "Personel") {
+            var buttonsContainer = e.container.find(".k-edit-buttons");
+            var updateButton = buttonsContainer.find(".k-scheduler-update");
+            var cancelButton = buttonsContainer.find(".k-scheduler-cancel");
+            var deleteButton = buttonsContainer.find(".k-scheduler-delete");
+            updateButton.remove();
+            cancelButton.remove();
+            deleteButton.remove();
+        }
+    }
+</script>
+<script id="customEventTemplate" type="text/x-kendo-template">
+    <div class='movie-template'>
+        <strong>#= title #</strong>
+        <p>&nbsp\t#= description #</p>
+    </div>
+</script>
 
 <script id="customEditorTemplate" type="text/x-kendo-template">
     <div class="k-edit-label"><label for="title">Başlık</label></div>
@@ -90,6 +131,6 @@
       </div>
     <div class="k-edit-label"><label for="description">Açıklama</label></div>
     <div data-container-for="description" class="k-edit-field">
-        <textarea name="description" data-role="textarea" data-bind="value:description"></textarea>
-      </div>
+        <textarea style="resize: vertical;" name="description" data-role="textarea" data-bind="value:description"></textarea>
+    </div>
 </script>

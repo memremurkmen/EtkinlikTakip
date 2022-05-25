@@ -191,3 +191,4 @@ C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Etkinli
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\ref\EtkinlikTakip.dll
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Etkinlik\Index.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Login\Login.cshtml.g.cs
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\bin\Debug\net5.0\Microsoft.AspNet.Identity.Core.dll

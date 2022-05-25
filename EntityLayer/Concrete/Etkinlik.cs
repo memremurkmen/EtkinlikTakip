@@ -9,7 +9,7 @@ namespace EntityLayer.Concrete
 {
     public class Etkinlik : ISchedulerEvent
     {
-        public int ID { get; set; }
+        public long ID { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
         public bool IsAllDay { get; set; }
@@ -19,11 +19,11 @@ namespace EntityLayer.Concrete
         public string EndTimezone { get; set; }
         public string RecurrenceRule { get; set; }
         public string RecurrenceException { get; set; }
-        public int CreateBy { get; set; }
+        public long CreateBy { get; set; }
         public DateTime CreateTime { get; set; }
-        public int UpdateBy { get; set; }
+        public long UpdateBy { get; set; }
         public DateTime UpdateTime { get; set; }
-        public int DeleteBy { get; set; }
+        public long DeleteBy { get; set; }
         public DateTime DeleteTime { get; set; }
 
     }

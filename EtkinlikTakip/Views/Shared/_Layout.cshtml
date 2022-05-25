@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -17,6 +19,9 @@
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
     <link href="https://cdn.kendostatic.com/2022.2.510/styles/kendo.bootstrap-main.min.css" rel="stylesheet" type="text/css" />
+
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    
     <script src="https://cdn.kendostatic.com/2022.2.510/js/jquery.min.js"></script>
     <script src="https://cdn.kendostatic.com/2022.2.510/js/jszip.min.js"></script>
     <script src="https://cdn.kendostatic.com/2022.2.510/js/kendo.all.min.js"></script>
@@ -32,8 +37,7 @@
 
     <div id="mySidenav" class="sidenav">
         <img style="width:75px;height:75px; margin-left:62.5px" src="~/images/cumhurbaskaligi-armasi.png" alt="Cumhurbaşkanlığı Arması">
-        <a href="Etkinlik">Etkinlikler</a>
-        <a href="Login/Login">Login</a>
+        <a href="/Etkinlik/Index">Etkinlikler</a>
         <a href="#">Services</a>
         <a href="#">Clients</a>
         <a href="#">Contact</a>
@@ -44,26 +48,26 @@
             <nav class="navbar navbar-expand-lg bg-light">
                 <span style="font-size:30px;cursor:pointer" onclick="changeNav()">&#9776;</span>
                 @*<div class="collapse navbar-collapse" id="navbarNavDropdown">
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Etkinlik" asp-action="Etkinliklerim">Etkinliklerim</a>
-                        </li>
-                        <li class="adminEkrani nav-item">
-                            <a class="nav-link" asp-controller="Kullanici" asp-action="Kullanicilar">Kullanıcılar</a>
-                        </li>
-                        <li class="yetkiliVeAdminEkrani nav-item">
-                            <a class="nav-link" asp-controller="Etkinlik" asp-action="Etkinlikler">Etkinlikleri Yönet</a>
-                        </li>
-                    </ul>
+                <ul class="navbar-nav">
+                <li class="nav-item">
+                <a class="nav-link" asp-controller="Etkinlik" asp-action="Etkinliklerim">Etkinliklerim</a>
+                </li>
+                <li class="adminEkrani nav-item">
+                <a class="nav-link" asp-controller="Kullanici" asp-action="Kullanicilar">Kullanıcılar</a>
+                </li>
+                <li class="yetkiliVeAdminEkrani nav-item">
+                <a class="nav-link" asp-controller="Etkinlik" asp-action="Etkinlikler">Etkinlikleri Yönet</a>
+                </li>
+                </ul>
                 </div>*@
                 <div class="dropdown" style="margin-left:auto;">
                     <button class="btn btn-dark dropdown-toggle" type="button" data-toggle="dropdown">
-                        Emre Türkmen
+                        @HttpContextAccessor.HttpContext.Session.GetString("userName")
                         <span class="caret"></span>
                     </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item btn-dark" href="/User/Hesabım">Hesabım</a></li>
-                        <li><a class="dropdown-item btn-dark" href="/GirisVeKayit/CikisYap">Oturumu Kapat</a></li>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                        <li><a class="dropdown-item btn-dark" href="#">Hesabım</a></li>
+                        <li><a class="dropdown-item btn-dark" href="/Login/LogOut">Oturumu Kapat</a></li>
                     </ul>
                 </div>
 
