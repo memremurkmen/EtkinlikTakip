@@ -21,6 +21,10 @@ namespace DataAccessLayer.Repositories
         {
             return c.Set<T>().Find(id);
         }
+        public T GetByID(Guid id)
+        {
+            return c.Set<T>().Find(id);
+        }
 
         public IList<T> GetListAll()
         {

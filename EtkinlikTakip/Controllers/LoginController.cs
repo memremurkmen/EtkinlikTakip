@@ -1,16 +1,14 @@
 ﻿using BusinessLayer.Concrete;
 using DataAccessLayer.EntityFramework;
-using EntityLayer.Concrete;
-using Kendo.Mvc.Extensions;
+using EtkinlikTakip.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace EtkinlikTakip.Controllers
@@ -19,50 +17,52 @@ namespace EtkinlikTakip.Controllers
     {
         UserRoleManager userRolemngr = new UserRoleManager(new EfUserRoleRepository());
 
+
         [AllowAnonymous]
-        public IActionResult Login()
+        [HttpGet]
+        public async Task<IActionResult> LoginAsync()
         {
-            //if (Request.Cookies["UserId"] != null)
-            //{
-            //    var userRole = userRolemngr.GetUserRoleById(long.Parse(Request.Cookies["UserId"]));
-            //    if (userRole != null)
-            //    {
-            //        var claims = new List<Claim>//authorize için yetki veriliyor
-            //        {
-            //            new Claim(ClaimTypes.Name,userRole[0].User.UserName),
-            //            new Claim(ClaimTypes.Role,userRole[0].Role.RoleName)//değiştirilecek
-            //        };
-            //        var userIdentity = new ClaimsIdentity(claims, "User Identity");
-            //        ClaimsPrincipal principal = new ClaimsPrincipal(userIdentity);
-            //        await HttpContext.SignInAsync(principal);
+            if (Request.Cookies["UserId"] != null)
+            {
+                var userRole = userRolemngr.GetUserRoleById(long.Parse(Request.Cookies["UserId"]));
+                if (userRole != null)
+                {
+                    var claims = new List<Claim>//authorize için yetki veriliyor
+                    {
+                        new Claim(ClaimTypes.Sid,userRole[0].User.Id.ToString()),//değiştirilecek
+                        new Claim(ClaimTypes.Name,userRole[0].User.UserName),//değiştirilecek
+                        new Claim(ClaimTypes.Role,userRole[0].Role.RoleName)//değiştirilecek
+                    };
+                    var userIdentity = new ClaimsIdentity(claims, "User Identity");
+                    ClaimsPrincipal principal = new ClaimsPrincipal(userIdentity);
+                    await HttpContext.SignInAsync(principal);
 
-            //        CookieOptions options = new CookieOptions();
-            //        options.Expires = DateTime.Now.AddDays(2);
-            //        Response.Cookies.Append("UserId", userRole[0].User.Id.ToString(), options);
-            //        return RedirectToAction("Index", "Etkinlik");
-            //    }
-            //    else
-            //    {
-            //        return View();
-            //    }
-
-            //}
+                    CookieOptions options = new CookieOptions();
+                    options.Expires = DateTime.Now.AddDays(2);
+                    Response.Cookies.Append("UserId", userRole[0].User.Id.ToString(), options);
+                    return RedirectToAction("Index", "Activity");
+                }
+                else
+                {
+                    return View();
+                }
+            }
             return View();
         }
 
+
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> LoginAsync(UserRole kullanici)
+        public async Task<IActionResult> LoginAsync(UserModel kullanici)
         {
-            var userRole = userRolemngr.GetByUserNameAndPass(kullanici.User.UserName, kullanici.User.Password);
+            var userRole = userRolemngr.GetByUserNameAndPass(kullanici.Username, kullanici.Password);
             if (userRole.Count != 0)
             {
                 var claims = new List<Claim>//authorize için yetki veriliyor
                 {
-                    new Claim(ClaimTypes.Sid,userRole[0].User.Id.ToString()),
-                    new Claim(ClaimTypes.Name,userRole[0].User.UserName),
-                    new Claim(ClaimTypes.Role, userRole[0].Role.RoleName),//düzenlenecek
-                    new Claim("UserRoles", userRole[0].Role.RoleName)
+                    new Claim(ClaimTypes.Sid,userRole[0].User.Id.ToString()),//düzenlenecek
+                    new Claim(ClaimTypes.Name,userRole[0].User.UserName),//düzenlenecek
+                    new Claim(ClaimTypes.Role, userRole[0].Role.RoleName)//düzenlenecek
                 };
                 var userIdentity = new ClaimsIdentity(claims, "UserIdentity");
                 ClaimsPrincipal principal = new ClaimsPrincipal(userIdentity);
@@ -74,17 +74,34 @@ namespace EtkinlikTakip.Controllers
                 //CookieOptions options = new CookieOptions();
                 //options.Expires = DateTime.Now.AddDays(2);//cookie 2 gün tutuluyor
                 //Response.Cookies.Append("UserId", userRole[0].User.Id.ToString(), options);
-
-                return RedirectToAction("Index", "Etkinlik");
+                return RedirectToAction("Index", "Activity");
             }
             return RedirectToAction("Login", "Login");
         }
 
         public async Task<ActionResult> LogOutAsync()
         {
-            Response.Cookies.Delete("UserId");
+            //Response.Cookies.Delete("UserId");
             await HttpContext.SignOutAsync();
             return RedirectToAction("Login", "Login");
+        }
+
+
+        private UserModel GetAuthUser()
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+            if (identity != null)
+            {
+                var userClaims = identity.Claims;
+
+                return new UserModel
+                {
+                    userId = long.Parse(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Sid)?.Value),
+                    Username = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
+                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value
+                };
+            }
+            return null;
         }
 
     }

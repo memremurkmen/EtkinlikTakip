@@ -189,6 +189,7 @@ C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\refint\
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\EtkinlikTakip.pdb
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\EtkinlikTakip.genruntimeconfig.cache
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\ref\EtkinlikTakip.dll
-C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Etkinlik\Index.cshtml.g.cs
-C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Login\Login.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\bin\Debug\net5.0\Microsoft.AspNet.Identity.Core.dll
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Login\Login.cshtml.g.cs
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.Design.dll
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Activity\Index.cshtml.g.cs

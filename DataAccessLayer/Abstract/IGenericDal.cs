@@ -13,5 +13,6 @@ namespace DataAccessLayer.Abstract
         void Update(T t);
         IList<T> GetListAll();
         T GetByID(long ig);
+        T GetByID(Guid ig);
     }
 }

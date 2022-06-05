@@ -16,7 +16,8 @@ namespace DataAccessLayer.Concrete
                 "integrated security=true;");
         }
 
-        public DbSet<Etkinlik> Etkinlik { get; set; }
+        public DbSet<Activity> Activity { get; set; }
+        public DbSet<ActivityInvite> ActivityInvite { get; set; }
         public DbSet<User> User { get; set; }
         public DbSet<Role> Role { get; set; }
         public DbSet<UserRole> UserRole { get; set; }

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DataAccessLayer.Migrations
 {
     [DbContext(typeof(Context))]
-    [Migration("20220520141655_createTablesMig")]
-    partial class createTablesMig
+    [Migration("20220603131626_activityInviteAddMig")]
+    partial class activityInviteAddMig
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -21,7 +21,7 @@ namespace DataAccessLayer.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.0");
 
-            modelBuilder.Entity("EntityLayer.Concrete.Etkinlik", b =>
+            modelBuilder.Entity("EntityLayer.Concrete.Activity", b =>
                 {
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
@@ -49,8 +49,17 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("EndTimezone")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsAllDay")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MaksKontenjan")
+                        .HasColumnType("int");
 
                     b.Property<string>("RecurrenceException")
                         .HasColumnType("nvarchar(max)");
@@ -73,9 +82,57 @@ namespace DataAccessLayer.Migrations
                     b.Property<DateTime>("UpdateTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("isConfirmed")
+                        .HasColumnType("bit");
+
                     b.HasKey("ID");
 
-                    b.ToTable("Etkinlik");
+                    b.ToTable("Activity");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.ActivityInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("ActivityID")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ConfirmBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("ConfirmTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("CreateBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("DeleteBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("DeleteTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("EtkinlikId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActivityID");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ActivityInvite");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.Role", b =>
@@ -133,6 +190,23 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("UserRole");
                 });
 
+            modelBuilder.Entity("EntityLayer.Concrete.ActivityInvite", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Activity", "Activity")
+                        .WithMany("Invitee")
+                        .HasForeignKey("ActivityID");
+
+                    b.HasOne("EntityLayer.Concrete.User", "User")
+                        .WithMany("Invitee")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Activity");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EntityLayer.Concrete.UserRole", b =>
                 {
                     b.HasOne("EntityLayer.Concrete.Role", "Role")
@@ -152,6 +226,11 @@ namespace DataAccessLayer.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("EntityLayer.Concrete.Activity", b =>
+                {
+                    b.Navigation("Invitee");
+                });
+
             modelBuilder.Entity("EntityLayer.Concrete.Role", b =>
                 {
                     b.Navigation("UserRole");
@@ -159,6 +238,8 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("EntityLayer.Concrete.User", b =>
                 {
+                    b.Navigation("Invitee");
+
                     b.Navigation("UserRole");
                 });
 #pragma warning restore 612, 618

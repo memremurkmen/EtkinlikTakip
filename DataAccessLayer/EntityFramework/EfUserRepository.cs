@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.EntityFramework
 {
-    public class EfEtkinlikRepository : GenericRepository<Etkinlik>, IEtkinlikDal
+    public class EfUserRepository : GenericRepository<User>, IUserDal
     {
     }
 }

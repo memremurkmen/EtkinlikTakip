@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace DataAccessLayer.Abstract
 {
-    public interface IEtkinlikDal : IGenericDal<Etkinlik>
+    public interface IActivityDal : IGenericDal<Activity>
     {
+        void DeleteActivity(Activity activity);
     }
 }
