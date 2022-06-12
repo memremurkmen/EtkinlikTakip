@@ -10,3 +10,6 @@ C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\obj\Debug\net5.0\EntityLay
 C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\obj\Debug\net5.0\refint\EntityLayer.dll
 C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\obj\Debug\net5.0\EntityLayer.pdb
 C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\obj\Debug\net5.0\ref\EntityLayer.dll
+C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\bin\Debug\net5.0\EntityLayer.runtimeconfig.json
+C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\bin\Debug\net5.0\EntityLayer.runtimeconfig.dev.json
+C:\Users\emret\source\repos\EtkinlikTakip\EntityLayer\obj\Debug\net5.0\EntityLayer.genruntimeconfig.cache

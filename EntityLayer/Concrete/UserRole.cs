@@ -13,9 +13,11 @@ namespace EntityLayer.Concrete
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+        [ForeignKey("User")]
         public long UserId { get; set; }
-        public long RoleId { get; set; }
         public virtual User User { get; set; }
+        [ForeignKey("Role")]
+        public long RoleId { get; set; }
         public virtual Role Role { get; set; }
 
     }

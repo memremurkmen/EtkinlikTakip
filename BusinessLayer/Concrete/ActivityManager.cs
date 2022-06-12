@@ -31,11 +31,12 @@ namespace BusinessLayer.Concrete
             _activityDal.Insert(activity);
         }
 
-        public void ActivityDelete(Activity activity)
+
+        public void ActivityDeleteById(long activityId, long deletedBy, DateTime deletedTime)
         {
-            if (activity.ID != 0)
+            if (activityId != 0)
             {
-                _activityDal.DeleteActivity(activity);
+                _activityDal.DeleteActivityById(activityId, deletedBy, deletedTime);
             }
         }
 
@@ -43,5 +44,27 @@ namespace BusinessLayer.Concrete
         {
             _activityDal.Update(activity);
         }
+
+        public bool CheckEmptyKontenjan(long activityId)
+        {
+            return _activityDal.CheckEmptyKontenjan(activityId);
+        }
+
+        public IList<Activity> GetConfirmedList()
+        {
+            return _activityDal.GetConfirmedList();
+        }
+
+        public IList<ActivityViewModel> GetListOrderByCreatedTime()
+        {
+            return _activityDal.GetListOrderByCreatedTime();
+        }
+
+        public void ChangeActivityConfirmation(long activityId, bool isConfirmed, long updatedBy, DateTime updatedTime)
+        {
+            _activityDal.ChangeActivityConfirmation(activityId, isConfirmed, updatedBy, updatedTime);
+        }
+
+
     }
 }

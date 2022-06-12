@@ -40,7 +40,7 @@ namespace EtkinlikTakip.Controllers
                     CookieOptions options = new CookieOptions();
                     options.Expires = DateTime.Now.AddDays(2);
                     Response.Cookies.Append("UserId", userRole[0].User.Id.ToString(), options);
-                    return RedirectToAction("Index", "Activity");
+                    return RedirectToAction("Activities", "Activity");
                 }
                 else
                 {
@@ -74,7 +74,7 @@ namespace EtkinlikTakip.Controllers
                 //CookieOptions options = new CookieOptions();
                 //options.Expires = DateTime.Now.AddDays(2);//cookie 2 gün tutuluyor
                 //Response.Cookies.Append("UserId", userRole[0].User.Id.ToString(), options);
-                return RedirectToAction("Index", "Activity");
+                return RedirectToAction("Activities", "Activity");
             }
             return RedirectToAction("Login", "Login");
         }

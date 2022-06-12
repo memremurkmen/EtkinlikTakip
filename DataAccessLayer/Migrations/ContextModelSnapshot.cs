@@ -26,16 +26,22 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("bigint")
                         .UseIdentityColumn();
 
-                    b.Property<long>("CreateBy")
+                    b.Property<long?>("ConfirmedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("CreateTime")
+                    b.Property<DateTime?>("ConfirmedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("DeleteBy")
+                    b.Property<long>("CreatedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("DeleteTime")
+                    b.Property<DateTime>("CreatedTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long?>("DeletedBy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
@@ -51,6 +57,9 @@ namespace DataAccessLayer.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAllDay")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsConfirmed")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
@@ -77,16 +86,21 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("UpdateBy")
+                    b.Property<long?>("UpdatedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("UpdateTime")
+                    b.Property<DateTime?>("UpdatedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("isConfirmed")
-                        .HasColumnType("bit");
-
                     b.HasKey("ID");
+
+                    b.HasIndex("ConfirmedBy");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("DeletedBy");
+
+                    b.HasIndex("UpdatedBy");
 
                     b.ToTable("Activity");
                 });
@@ -97,28 +111,28 @@ namespace DataAccessLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<long?>("ActivityID")
+                    b.Property<long>("ActivityId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("ConfirmBy")
+                    b.Property<long?>("ConfirmedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("ConfirmTime")
+                    b.Property<DateTime?>("ConfirmedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("CreateBy")
+                    b.Property<long>("CreatedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("CreateTime")
+                    b.Property<DateTime>("CreatedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("DeleteBy")
+                    b.Property<long?>("DeletedBy")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("DeleteTime")
+                    b.Property<DateTime?>("DeletedTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<long>("EtkinlikId")
+                    b.Property<long>("InvitedUserId")
                         .HasColumnType("bigint");
 
                     b.Property<bool>("IsConfirmed")
@@ -127,14 +141,17 @@ namespace DataAccessLayer.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ActivityID");
+                    b.HasIndex("ActivityId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ConfirmedBy");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("DeletedBy");
+
+                    b.HasIndex("InvitedUserId");
 
                     b.ToTable("ActivityInvite");
                 });
@@ -194,35 +211,91 @@ namespace DataAccessLayer.Migrations
                     b.ToTable("UserRole");
                 });
 
-            modelBuilder.Entity("EntityLayer.Concrete.ActivityInvite", b =>
+            modelBuilder.Entity("EntityLayer.Concrete.Activity", b =>
                 {
-                    b.HasOne("EntityLayer.Concrete.Activity", "Activity")
-                        .WithMany("Invitee")
-                        .HasForeignKey("ActivityID");
+                    b.HasOne("EntityLayer.Concrete.User", "ConfirmedUser")
+                        .WithMany()
+                        .HasForeignKey("ConfirmedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("EntityLayer.Concrete.User", "User")
-                        .WithMany("Invitee")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("EntityLayer.Concrete.User", "CreatedUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.Navigation("Activity");
+                    b.HasOne("EntityLayer.Concrete.User", "DeletedUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("User");
+                    b.HasOne("EntityLayer.Concrete.User", "UpdatedUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ConfirmedUser");
+
+                    b.Navigation("CreatedUser");
+
+                    b.Navigation("DeletedUser");
+
+                    b.Navigation("UpdatedUser");
+                });
+
+            modelBuilder.Entity("EntityLayer.Concrete.ActivityInvite", b =>
+                {
+                    b.HasOne("EntityLayer.Concrete.Activity", "AIActivity")
+                        .WithMany("Invitees")
+                        .HasForeignKey("ActivityId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.User", "AIConfirmedUser")
+                        .WithMany()
+                        .HasForeignKey("ConfirmedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("EntityLayer.Concrete.User", "AICreatedUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EntityLayer.Concrete.User", "AIDeletedUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("EntityLayer.Concrete.User", "InvitedUser")
+                        .WithMany()
+                        .HasForeignKey("InvitedUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AIActivity");
+
+                    b.Navigation("AIConfirmedUser");
+
+                    b.Navigation("AICreatedUser");
+
+                    b.Navigation("AIDeletedUser");
+
+                    b.Navigation("InvitedUser");
                 });
 
             modelBuilder.Entity("EntityLayer.Concrete.UserRole", b =>
                 {
                     b.HasOne("EntityLayer.Concrete.Role", "Role")
-                        .WithMany("UserRole")
+                        .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EntityLayer.Concrete.User", "User")
-                        .WithMany("UserRole")
+                        .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Role");
@@ -232,19 +305,7 @@ namespace DataAccessLayer.Migrations
 
             modelBuilder.Entity("EntityLayer.Concrete.Activity", b =>
                 {
-                    b.Navigation("Invitee");
-                });
-
-            modelBuilder.Entity("EntityLayer.Concrete.Role", b =>
-                {
-                    b.Navigation("UserRole");
-                });
-
-            modelBuilder.Entity("EntityLayer.Concrete.User", b =>
-                {
-                    b.Navigation("Invitee");
-
-                    b.Navigation("UserRole");
+                    b.Navigation("Invitees");
                 });
 #pragma warning restore 612, 618
         }

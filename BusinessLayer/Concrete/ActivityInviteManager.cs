@@ -26,23 +26,32 @@ namespace BusinessLayer.Concrete
             return _activityInviteDal.GetListAll();
         }
 
-        public void ActivityInviteAdd(ActivityInvite activityInvite)
+        public void AddActivityInvite(ActivityInvite activityInvite)
         {
             _activityInviteDal.Insert(activityInvite);
         }
 
-        public void ActivityInviteDelete(ActivityInvite activityInvite)
+        public void DeleteActivityInviteById(Guid activityInviteId, long deletedBy, DateTime deletedTime)
         {
-            if (activityInvite.Id != Guid.Parse("00000000-0000-0000-0000-000000000000"))
+            if (activityInviteId != Guid.Parse("00000000-0000-0000-0000-000000000000"))
             {
-                _activityInviteDal.DeleteActivityInvite(activityInvite);
+                _activityInviteDal.DeleteActivityInviteById(activityInviteId,deletedBy,deletedTime);
             }
         }
 
-        public void ActivityInviteUpdate(ActivityInvite activityInvite)
+        public void UpdateActivityInvite(ActivityInvite activityInvite)
         {
             _activityInviteDal.Update(activityInvite);
         }
 
+        public ActivityInvite CheckActivityInvite(long activityId, long invitedUserId)
+        {
+            return _activityInviteDal.CheckActivityInvite(activityId, invitedUserId);
+        }
+
+        public IList<ActivityInvite> GetInvitesByActivityId(long activityId)
+        {
+            return _activityInviteDal.GetInvitesByActivityId(activityId);
+        }
     }
 }

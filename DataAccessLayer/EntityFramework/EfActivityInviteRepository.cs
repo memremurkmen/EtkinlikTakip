@@ -2,6 +2,7 @@
 using DataAccessLayer.Concrete;
 using DataAccessLayer.Repositories;
 using EntityLayer.Concrete;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,52 @@ namespace DataAccessLayer.EntityFramework
     {
         Context c = new Context();
 
-        public void DeleteActivityInvite(ActivityInvite activityInvite)
+        public ActivityInvite CheckActivityInvite(long activityId, long invitedUserId)
         {
-            var ai = c.Activity.Find(activityInvite.Id);
+            var invite = (from ai in c.ActivityInvite
+                          join a in c.Activity
+                          on ai.ActivityId equals a.ID
+                          join u in c.User
+                          on ai.InvitedUserId equals u.Id
+                          where ai.ActivityId == activityId && ai.InvitedUserId == invitedUserId
+                          select new ActivityInvite
+                          {
+                              InvitedUser = u,
+                              AIActivity = a,
+                              Id = ai.Id,
+                              IsConfirmed = ai.IsConfirmed
+                          }).FirstOrDefault();
+            return invite;
+        }
+
+        public void DeleteActivityInviteById(Guid activityInviteId, long deletedBy, DateTime deletedTime)
+        {
+            var ai = c.ActivityInvite.Find(activityInviteId);
             ai.IsDeleted = true;
+            ai.DeletedBy = deletedBy;
+            ai.DeletedTime = deletedTime;
             c.SaveChanges();
+        }
+
+        public IList<ActivityInvite> GetInvitesByActivityId(long activityId)
+        {
+            var activity = (from ai in c.ActivityInvite
+                            .Include(a => a.InvitedUser)
+                            .Include(a => a.AICreatedUser)
+                            .Include(a => a.AIConfirmedUser)
+                            join a in c.Activity
+                            on ai.ActivityId equals a.ID
+                            where ai.ActivityId == activityId && ai.IsDeleted == false
+                            select new ActivityInvite
+                            {
+                                Id = ai.Id,
+                                InvitedUser = ai.InvitedUser,
+                                AICreatedUser = ai.AICreatedUser,
+                                AIConfirmedUser = ai.AIConfirmedUser,
+                                IsConfirmed = ai.IsConfirmed,
+                                AIActivity = a
+                            }).ToList();
+            return activity;
         }
     }
 }

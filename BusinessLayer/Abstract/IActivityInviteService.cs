@@ -9,10 +9,12 @@ namespace BusinessLayer.Abstract
 {
     public interface IActivityInviteService
     {
-        void ActivityInviteAdd(ActivityInvite activityInvite);
-        void ActivityInviteDelete(ActivityInvite activityInvite);
-        void ActivityInviteUpdate(ActivityInvite activityInvite);
+        void AddActivityInvite(ActivityInvite activityInvite);
+        void DeleteActivityInviteById(Guid activityInviteId, long deletedBy, DateTime deletedTime);
+        void UpdateActivityInvite(ActivityInvite activityInvite);
         IList<ActivityInvite> GetList();
         ActivityInvite GetById(Guid id);
+        ActivityInvite CheckActivityInvite(long activityId, long invitedUserId);
+        IList<ActivityInvite> GetInvitesByActivityId(long activityId);
     }
 }

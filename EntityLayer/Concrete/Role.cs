@@ -14,6 +14,5 @@ namespace EntityLayer.Concrete
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
         public string RoleName { get; set; }
-        public virtual ICollection<UserRole> UserRole { get; set; }
     }
 }

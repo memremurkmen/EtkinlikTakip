@@ -15,7 +15,13 @@ namespace EntityLayer.Concrete
         public long Id { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
-        public virtual ICollection<UserRole> UserRole { get; set; }
-        public virtual ICollection<ActivityInvite> Invitee { get; set; }
+        //[InverseProperty("InvitedUser")]
+        //public virtual ICollection<ActivityInvite> InvitedUser { get; set; }
+        //[InverseProperty("CreatedUser")]
+        //public virtual ICollection<ActivityInvite> CreatedUser { get; set; }
+        //[InverseProperty("ConfirmedUser")]
+        //public virtual ICollection<ActivityInvite> ConfirmedUser { get; set; }
+        //[InverseProperty("DeletedUser")]
+        //public virtual ICollection<ActivityInvite> DeletedUser { get; set; }
     }
 }

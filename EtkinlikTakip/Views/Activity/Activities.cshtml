@@ -1,0 +1,412 @@
+﻿@using EntityLayer.Concrete
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+<div>
+    @(Html.Kendo().Scheduler<Activity>()
+    .Name("scheduler")
+    .Date(DateTime.Now)
+    .StartTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 09, 00, 00))
+    .EndTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 18, 00, 00))
+    .Height(550)
+    .Toolbar(t => {
+    t.Search();
+    })
+    .Editable(edit=>{
+    if (HttpContextAccessor.HttpContext.Session.GetString("userRole") == "Personel")
+    {
+    edit.Confirmation(false);
+    edit.Create(false);
+    edit.Move(false);
+    edit.Resize(false);
+    edit.Destroy(false);
+    edit.EditRecurringMode(SchedulerEditRecurringMode.Occurrence);
+    edit.TemplateId("activityDetailTemplate");
+    }
+    else{
+    edit.TemplateId("customEditorTemplate");
+    }
+    })
+    .EventTemplateId("customEventTemplate")
+    .Events(e =>
+    {
+    e.Edit("scheduler_edit");
+    })
+    .Timezone("Etc/UTC")
+    .Footer(false)
+    .Views(views =>
+    {
+    views.DayView();
+    views.WeekView(week =>
+    {
+    week.MajorTick(30);
+    });
+    views.MonthView(month => {
+    month.Selected(true);
+    month.AdaptiveSlotHeight(true);
+    month.EventsPerDay(5);
+    month.EventHeight(50);
+    month.EventSpacing(5);
+    });
+    views.YearView(year => {
+    year.Title("Yıl");
+    });
+    views.AgendaView();
+    views.CustomView("Ajanda");
+    })
+    .DataSource(d => d
+    .Model(m =>
+    {
+    m.Id(f => f.ID);
+    m.Field(f => f.Title).DefaultValue("Başlık yok");
+    m.Field(f=> f.CreatedTime).DefaultValue(DateTime.Now);
+    })
+    .Read("ActivityRead", "Activity")
+    .Create("ActivityCreate", "Activity")
+    .Update("ActivityUpdate", "Activity")
+    .Destroy("ActivityDestroy", "Activity")
+    )
+    )
+</div>
+
+<script type="text/javascript">
+    document.addEventListener("keydown", function(event) {
+        if (event.keyCode == 67) { }
+    });
+    var Ajanda = kendo.ui.AgendaView.extend({
+        startDate: function() {
+            var date = kendo.ui.AgendaView.fn.startDate.call(this);
+            return kendo.date.addDays(date, -31);
+        },
+        endDate: function() {
+            var date = kendo.ui.AgendaView.fn.endDate.call(this);
+            return kendo.date.addDays(date, 31);
+        }
+    });
+
+    function onDataBound(e) {
+        var grid = this;
+        grid.table.find("tr").each(function() {
+            var dataItem = grid.dataItem(this);
+            var themeColor = dataItem.IsConfirmed ? 'success' : 'error';
+            var text = dataItem.IsConfirmed ? 'Onaylandı' : 'Onaylanmadı';
+
+            $(this).find('script').each(function() {
+                eval($(this).html());
+            });
+
+            $(this).find(".badgeTemplate").kendoBadge({
+                themeColor: themeColor,
+                text: text,
+            });
+
+            kendo.bind($(this), dataItem);
+        });
+    }
+
+    function scheduler_edit(e) {
+        var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
+        var userId = '@HttpContextAccessor.HttpContext.Session.GetString("userId")';
+        if (role == "Personel") {
+            e.container.find(".k-scheduler-update").remove();//kaydet butonunu kaldirir
+            e.container.find(".k-scheduler-cancel").remove();//sil butonunu kaldirir
+            e.container.find(".isAllDayAndRuleGroup").remove();//butun gun kismini kaldirir
+            e.container.find(".k-input-button").remove();//tekrar kismini kaldirir
+            $(".k-edit-buttons").prepend("<input value='Davet isteği yolla' type='button' " +
+                "onclick='InviteRequest(" + e.event.id + "," + userId + ")' " +
+                "class='k-button k-button-md k-rounded-md k-button-solid k-button-solid-success'>");
+
+        }
+        else {
+            detailUserGrid(e.event.id);
+        }
+    }
+    function userDropdown(id) {
+        $.ajax({
+            url: "@Url.Action("GetAllUsers", "Activity")",
+            type: 'POST',
+            success: function(data) {
+                var model = [];
+                $.each(data, function(i, item) {
+                    model[item.Id] = item.UserName;
+                });
+
+                Swal.fire({
+                    title: 'Lütfen bir davetli seçiniz.',
+                    input: 'select',
+                    inputOptions: model,
+                    inputPlaceholder: 'Davetli seçiniz.',
+                    showCancelButton: true,
+                    inputValidator: function(value) {
+                        return new Promise(function(resolve, reject) {
+                            if (value !== '') {
+                                resolve();
+                            } else {
+                                resolve('Lütfen bir kullanıcı seçiniz!');
+                            }
+                        });
+                    }
+                }).then(function(result) {
+                    if (result.value) {
+                        InviteRequest(id, result.value)
+                    }
+                });
+            },
+            error: function(users) {
+            }
+        });
+
+    }
+    function InviteRequest(id, userId) {
+        $.ajax({
+            url: "@Url.Action("InviteRequest", "Activity")",
+            type: 'POST',
+            data: {
+                'activityId': id,
+                'invitedUserId': userId
+            },
+            success: function(data) {
+                if (!data.isInvited) {
+                    swal({
+                        title: 'İşlem Tamam!',
+                        text: "Davet isteği atıldı.",
+                        icon: 'success',
+                        buttons: {
+                            confirm: {
+                                text: "Tamam",
+                                value: true,
+                                visible: true,
+                                className: "",
+                                closeModal: true
+                            }
+                        }
+                    })
+                }
+                else if (data.isInvited) {
+                    swal({
+                        title: 'İşlem Yapılmadı!',
+                        text: data.responseText,
+                        icon: 'warning',
+                        buttons: {
+                            confirm: {
+                                text: "Tamam",
+                                value: true,
+                                visible: true,
+                                className: "",
+                                closeModal: true
+                            }
+                        }
+                    })
+                }
+            },
+            error: function(data) {
+                swal({
+                    title: 'İşlem Tamamlanamadı!',
+                    text: 'Davet isteği yollanırken bir hata ile karşılaşıldı!',
+                    icon: 'error',
+                    buttons: {
+                        confirm: {
+                            text: "Tamam",
+                            value: true,
+                            visible: true,
+                            className: "",
+                            closeModal: true
+                        }
+                    }
+                })
+            }
+        });
+    }
+
+    function getFileName() {
+        var file = document.getElementById("inputfile");
+        document.getElementById("Image").value = file.files[0].name;
+    }
+
+</script>
+<script id="customEventTemplate" type="text/x-kendo-template">
+    <div class='movie-template' style='margin: 5px 5px 5px 5px;'>
+        #if(Image != null){#
+            <img src='/images/#= Image #' style="max-width:40px; max-height:40px;"/>
+        #}#
+        <strong>#= title #</strong>
+        <p style="color:black;white-space: break-spaces;">#= description #</p>
+    </div>
+</script>
+
+<script id="customEditorTemplate" type="text/x-kendo-template">
+    <div style="width: 100%; display: table; border-spacing:3px;">
+        <div style="display: table-row;">
+            <div style=" display: table-cell; padding:10px; ">
+                <div class="container-fluid">
+                    <h4>Detay</h4>
+    @*baslik*@
+                    <div class="k-edit-label"><label for="title">Başlık</label></div>
+                    <div data-container-for="title" class="k-edit-field">
+                        <input type="text" data-role="textbox" name="title" required="required" data-required-msg="Lütfen başlığı boş bırakmayınız!" data-bind="value:title"/>
+                    </div>
+    @*baslangic*@
+                    <div class="k-edit-label">
+                        <label for="start">Başlangıç</label>
+                    </div>
+                    <div data-container-for="start" class="k-edit-field">
+                        <input type="text"
+                            data-role="datetimepicker"
+                            data-interval="15"
+                            data-type="date"
+                            data-bind="value:start,invisible:isAllDay"
+                            validationMessage="Lütfen geçerli bir tarih giriniz!"
+                            name="start"/>
+                        <input type="text" data-type="date" data-role="datepicker" data-bind="value:start,visible:isAllDay" name="start" />
+                        <span data-bind="text: startTimezone"></span>
+                        <span data-for="start" class="k-invalid-msg" style="display: none;"></span>
+                    </div>
+    @*bitis*@
+                    <div class="k-edit-label"><label for="end">Bitiş</label></div>
+                    <div data-container-for="end" class="k-edit-field">
+                        <input type="text"
+                            data-type="date"
+                            data-role="datetimepicker"
+                            data-interval="15"
+                            data-bind="value:end,invisible:isAllDay"
+                            validationMessage="Lütfen geçerli bir tarih giriniz!"
+                            name="end"
+                            data-datecompare-msg="Bitiş tarihi, başlangıç tarihinden büyük veya ona eşit olmalıdır." />
+                        <input type="text" data-type="date" data-role="datepicker" data-bind="value:end,visible:isAllDay" name="end" data-datecompare-msg="Bitiş tarihi, başlangıç tarihinden büyük veya ona eşit olmalıdır." />
+                        <span data-bind="text: endTimezone"></span>
+                        <span data-bind="text: startTimezone, invisible: endTimezone"></span>
+                        <span data-for="end" class="k-invalid-msg" style="display: none;"></span>
+                    </div>
+    @*kurallar*@
+                    <div class="isAllDayAndRuleGroup">
+                        <div class="k-edit-label"><label for="isAllDay">Bütün gün</label></div>
+                        <div data-container-for="isAllDay" class="k-edit-field">
+                            <input type="checkbox" name="isAllDay" data-type="boolean" data-bind="checked:isAllDay"/>
+                        </div>
+                        <div class="k-edit-label"><label for="recurrenceRule">Tekrar</label></div>
+                        <div data-container-for="recurrenceRule" class="k-edit-field">
+                            <div data-bind="value:recurrenceRule" name="recurrenceRule" data-role="recurrenceeditor"></div>
+                        </div>
+                    </div>
+    @*aciklama*@
+                    <div class="k-edit-label"><label for="description">Açıklama</label></div>
+                    <div data-container-for="description" class="k-edit-field">
+                        <textarea name="description" rows="3" data-role="textarea" data-bind="value:description"></textarea>
+                    </div>
+    @*lokasyon*@
+                    <div class="k-edit-label"><label for="Location">Lokasyon</label></div>
+                    <div data-container-for="Location" class="k-edit-field">
+                        <input type="text" data-role="textbox" name="Location" required="required" data-required-msg="Lütfen lokasyonu boş bırakmayınız!" data-bind="value:Location"/>
+                    </div>
+    @*maksKontenjan*@
+                    <div class="k-edit-label"><label for="MaksKontenjan">Maksimum Kontenjan</label></div>
+                    <div data-container-for="MaksKontenjan" class="k-edit-field">
+                        <input type="number"  data-role="textbox" name="MaksKontenjan" required="required" data-required-msg="Lütfen kontenjanı boş bırakmayınız!" data-bind="value:MaksKontenjan"/>
+                    </div>
+    @*Image*@
+                    <div class="k-edit-label"><label for="Image">Fotoğraf</label></div>
+                    <div data-container-for="Image" class="k-edit-field">
+                        <input id="Image" data-role="file" name="Image" value="Image" type="file" accept="image/*">
+                        #if(Image != null){#
+                            <img src="/images/#= Image #" style="padding: 5px 5px 5px 5px; max-width:300px; max-height:150px; min-width:100px; min-height:100px;" width="auto" height="auto" >
+                        #}#
+                    </div>
+                </div>
+            </div>
+            <div style="display: table-cell; vertical-align: top; padding:10px; ">
+                <div class="container-fluid">
+                    <h4>Davetliler</h4>
+                    <div id="userGrid" style=""></div>
+                    <br>
+                    <input value="Davetli ekle" type="button" onclick="userDropdown(#=ID#)" class='k-button k-button-md k-rounded-md k-button-solid k-button-solid-success'>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+<script>
+    function detailUserGrid(activityId) {
+        $("#userGrid").kendoGrid({
+            dataSource: {
+                type: "jsonp",
+                transport: {
+                    read: "@Url.Action("GetInvitedUsers", "Activity")/" + activityId
+                },
+                pageSize: 20
+            },
+            height: "auto",
+            width: 450,
+            dataBound: onDataBound,
+            sortable: true,
+            filterable: true,
+            toolbar: ["search"],
+            search: {
+                fields: [
+                    { name: "InvitedUser.UserName", operator: "contains" }
+                ]
+            },
+            pageable: {
+                refresh: true,
+                pageSizes: true
+            },
+            columns: [{
+                field: "InvitedUser.UserName",
+                title: "Kullanıcı Adı",
+                width: 200
+            }, {
+                field: "IsConfirmed",
+                title: "Onay",
+                template: "<span id='badge_#=Id#' class='badgeTemplate'></span>",
+                width: 200
+            }]
+        });
+    }
+</script>
+<script id="activityDetailTemplate" type="text/x-kendo-template">
+    @*baslik*@
+    <div class="k-edit-label"><strong for="title">Başlık</strong></div>
+    <div class="k-edit-field"><label style="padding: 7px 0px;" for="title">#= title #</label></div>
+    @*baslangic*@
+    <div class="k-edit-label"><strong for="start">Başlangıç</strong></div>
+    <div data-container-for="start" class="k-edit-field">
+        <label  style="padding: 7px 0px;" for="start">#= kendo.toString(kendo.parseDate(start), 'dd/MM/yyyy HH:mm') #</label>
+    </div>
+    @*bitis*@
+    <div class="k-edit-label"><strong for="end">Bitiş</strong></div>
+    <div data-container-for="end" class="k-edit-field">
+        <label  style="padding: 7px 0px;" for="end">#= kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy HH:mm') #</label>
+    </div>
+    @*kurallar*@
+    <div class="isAllDayAndRuleGroup">
+        <div class="k-edit-label"><strong for="isAllDay">Bütün gün</strong></div>
+        <div data-container-for="isAllDay" class="k-edit-field">
+            <input type="checkbox" name="isAllDay" data-type="boolean" data-bind="checked:isAllDay"/>
+        </div>
+        <div class="k-edit-label"><strong for="recurrenceRule">Tekrar</strong></div>
+        <div data-container-for="recurrenceRule" class="k-edit-field">
+            <div data-bind="value:recurrenceRule" name="recurrenceRule" data-role="recurrenceeditor"></div>
+        </div>
+    </div>
+    @*aciklama*@
+    <div class="k-edit-label"><strong for="description">Açıklama</strong></div>
+    <div data-container-for="description" class="k-edit-field">
+        <label style="padding: 7px 0px;" for="description">#= description #</label>
+    </div>
+    @*lokasyon*@
+    <div class="k-edit-label"><strong for="Location">Lokasyon</strong></div>
+    <div data-container-for="Location" class="k-edit-field">
+        <label style="padding: 7px 0px;" for="Location">#= Location #</label>
+    </div>
+    @*Image*@
+    # if(Image != null){ #
+        <div class="k-edit-label"><strong for="Image">Fotoğraf</strong></div>
+        <div data-container-for="Image" class="k-edit-field">
+            <img src="/images/#= Image #" style="max-width:300px; max-height:150px; min-width:100px; min-height:100px;" width="auto" height="auto" >
+        </div>
+    #}#
+</script>

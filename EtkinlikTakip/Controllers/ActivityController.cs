@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 
@@ -20,7 +19,7 @@ namespace EtkinlikTakip.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Yetkili,Personel")]
-        public IActionResult Index()
+        public IActionResult Activities()
         {
             var authUser = GetAuthUser();
             HttpContext.Session.SetString("userName", authUser.Username);
@@ -28,11 +27,10 @@ namespace EtkinlikTakip.Controllers
             return View();
         }
 
-
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public virtual JsonResult ActivityRead([DataSourceRequest] DataSourceRequest request)
         {
-            var activities = activitymngr.GetList();
+            var activities = activitymngr.GetConfirmedList();
             foreach (Activity activity in activities)
             {
                 activity.Start = activity.Start.AddHours(3);
@@ -40,41 +38,64 @@ namespace EtkinlikTakip.Controllers
             }
             return Json(activities.ToDataSourceResult(request));
         }
+
         [Authorize(Roles = "Admin,Yetkili")]
-        public virtual JsonResult ActivityCreate([DataSourceRequest] DataSourceRequest request, Activity activity)
+        public IActionResult ActivityCreate([DataSourceRequest] DataSourceRequest request, Activity activity)
         {
             var authUser = GetAuthUser();
-            activity.CreateTime = DateTime.Now;
-            activity.CreateBy = authUser.userId;
-            activitymngr.ActivityAdd(activity);
-            return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
+            if (authUser != null)
+            {
+                if (authUser.Role == "Admin")
+                {
+                    activity.IsConfirmed = true;
+                    activity.ConfirmedBy = authUser.userId;
+                    activity.ConfirmedTime = DateTime.Now;
+                }
+                activity.CreatedTime = DateTime.Now;
+                activity.CreatedBy = authUser.userId;
+                activitymngr.ActivityAdd(activity);
+                return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
+            }
+            else
+            {
+                return RedirectToAction("Login", "Login");
+            }
         }
+
         [Authorize(Roles = "Admin,Yetkili")]
         public virtual JsonResult ActivityUpdate([DataSourceRequest] DataSourceRequest request, Activity activity)
         {
             if (ModelState.IsValid)
             {
                 var authUser = GetAuthUser();
-                activity.UpdateTime = DateTime.Now;
-                activity.UpdateBy = authUser.userId;
+                activity.UpdatedTime = DateTime.Now;
+                activity.UpdatedBy = authUser.userId;
                 activitymngr.ActivityUpdate(activity);
             }
 
             return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
         }
+
         [Authorize(Roles = "Admin,Yetkili")]
         public virtual JsonResult ActivityDestroy([DataSourceRequest] DataSourceRequest request, Activity activity)
         {
             if (ModelState.IsValid)
             {
                 var authUser = GetAuthUser();
-                activity.DeleteTime = DateTime.Now;
-                activity.DeleteBy = authUser.userId;
-                activitymngr.ActivityDelete(activity);
+                activitymngr.ActivityDeleteById(activity.ID, authUser.userId, DateTime.Now);
             }
 
             return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
         }
+
+        public IActionResult InvitedActivities()
+        {
+            var authUser = GetAuthUser();
+            HttpContext.Session.SetString("userName", authUser.Username);
+            HttpContext.Session.SetString("userRole", authUser.Role);
+            return View();
+        }
+
         private UserModel GetAuthUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -92,24 +113,55 @@ namespace EtkinlikTakip.Controllers
             return null;
         }
 
+
         [HttpPost]
-        public IActionResult InviteRequest(long activityId, Guid invitedUserId)
+        [Authorize(Roles = "Admin,Yetkili,Personel")]
+        public IActionResult InviteRequest(long activityId, long invitedUserId)
         {
-            if (true)//etkinliğe başvuru yapmak istenen kişini zaten başvuru yapıp yapmadığı kontrol edilecek
+            ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
+            ActivityInvite ai = activityInvitemngr.CheckActivityInvite(activityId, invitedUserId);
+            if (ai == null)//etkinliğe başvuru yapmak istenen kişini zaten başvuru yapıp yapmadığı kontrol edilecek
             {
-                return Json(new { success = true, response = true });
+                var authUser = GetAuthUser();
+                ActivityInvite invitedUser = new ActivityInvite();
+                invitedUser.InvitedUserId = invitedUserId;
+                invitedUser.ActivityId = activityId;
+                invitedUser.CreatedBy = authUser.userId;
+                invitedUser.CreatedTime = DateTime.Now;
+                if (authUser.Role == "Admin" || authUser.Role == "Yetkili")
+                {
+                    invitedUser.IsConfirmed = true;
+                    invitedUser.ConfirmedBy = authUser.userId;
+                    invitedUser.ConfirmedTime = DateTime.Now;
+                }
+                activityInvitemngr.AddActivityInvite(invitedUser);
+                return Json(new { success = true, responseText = "Davet isteği atıldı.", isInvited = false });
             }
-            else
+            else if (ai != null)
             {
-                return Json(new { success = false, response = false });
+                if (ai.IsConfirmed)
+                {
+                    return Json(new { success = true, responseText = "Zaten başvuru yapılmış ve başvurun kabul edilmiş.", isInvited = true });
+                }
+                return Json(new { success = true, responseText = "Zaten başvuru yapılmış.", isInvited = true });
             }
+            return Json(new { success = false, responseText = "Davet isteği yollanırken bir hata ile karşılaşıldı!" });
         }
 
-        public IActionResult GetAllUser()
+        [Authorize(Roles = "Admin,Yetkili")]
+        public JsonResult GetAllUsers()
         {
             UserManager usermngr = new UserManager(new EfUserRepository());
             var userList = usermngr.GetList();
-            return Json(new { success = true, users = userList });
+            return Json(userList);
+        }
+
+        [Authorize(Roles = "Admin,Yetkili")]
+        public JsonResult GetInvitedUsers(long Id)
+        {
+            ActivityInviteManager aimngr = new ActivityInviteManager(new EfActivityInviteRepository());
+            var users = aimngr.GetInvitesByActivityId(Id);
+            return Json(users);
         }
     }
 }

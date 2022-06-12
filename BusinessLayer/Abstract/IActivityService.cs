@@ -10,9 +10,13 @@ namespace BusinessLayer.Abstract
     public interface IActivityService
     {
         void ActivityAdd(Activity activity);
-        void ActivityDelete(Activity activity);
+        void ActivityDeleteById(long activityId, long deletedBy, DateTime deletedTime);
         void ActivityUpdate(Activity activity);
+        void ChangeActivityConfirmation(long activityId, bool isConfirmed, long updatedBy, DateTime updatedTime);
         IList<Activity> GetList();
+        IList<ActivityViewModel> GetListOrderByCreatedTime();
+        IList<Activity> GetConfirmedList();
         Activity GetById(long id);
+        bool CheckEmptyKontenjan(long activityId);
     }
 }

@@ -22,8 +22,6 @@
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 </head>
 <body style="background-image: url('../images/Cumhurbaskanligi-Kulliyesi.jpeg'); background-repeat:no-repeat; background-size:cover; background-position: center;">
@@ -49,9 +47,6 @@
                                 <button type="submit" class="form-control btn btn-primary submit px-3">Giriş Yap</button>
                             </div>
                         </form>
-                        <div class="form-group">
-                            <input type="button" onclick="swalDropdown()" class="form-control btn btn-primary submit px-3" value="swal">
-                        </div>
                     </div>
                 </div>
             </div>
@@ -70,38 +65,5 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
 </body>
 </html>
-<script>
-    function swalDropdown() {
-        //swal("Hello world!");
-        Swal.fire({
-            title: 'Select Outage Tier',
-            input: 'select',
-            inputOptions: {
-                '1': 'Tier 1',
-                '2': 'Tier 2',
-                '3': 'Tier 3'
-            },
-            inputPlaceholder: 'required',
-            showCancelButton: true,
-            inputValidator: function(value) {
-                return new Promise(function(resolve, reject) {
-                    if (value !== '') {
-                        resolve();
-                    } else {
-                        resolve('You need to select a Tier');
-                    }
-                });
-            }
-        }).then(function(result) {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    icon: 'success',
-                    html: 'You selected: ' + result.value
-                });
-            }
-        });
-    }
-
-</script>
 
 

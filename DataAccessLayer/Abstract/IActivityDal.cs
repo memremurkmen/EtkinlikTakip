@@ -9,6 +9,10 @@ namespace DataAccessLayer.Abstract
 {
     public interface IActivityDal : IGenericDal<Activity>
     {
-        void DeleteActivity(Activity activity);
+        IList<ActivityViewModel> GetListOrderByCreatedTime();
+        IList<Activity> GetConfirmedList();
+        void ChangeActivityConfirmation(long activityId, bool isConfirmed, long updatedBy, DateTime updatedTime);
+        void DeleteActivityById(long activityId, long deletedBy, DateTime deletedTime);
+        bool CheckEmptyKontenjan(long activityId);
     }
 }

@@ -2449,6 +2449,8 @@
       },
       "EntityLayer/1.0.0": {
         "dependencies": {
+          "Microsoft.EntityFrameworkCore": "5.0.0",
+          "Microsoft.EntityFrameworkCore.SqlServer": "5.0.0",
           "Telerik.UI.for.AspNet.Core.Trial": "2022.2.510"
         },
         "runtime": {
