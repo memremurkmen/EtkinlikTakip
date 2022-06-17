@@ -88,14 +88,6 @@ namespace EtkinlikTakip.Controllers
             return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
         }
 
-        public IActionResult InvitedActivities()
-        {
-            var authUser = GetAuthUser();
-            HttpContext.Session.SetString("userName", authUser.Username);
-            HttpContext.Session.SetString("userRole", authUser.Role);
-            return View();
-        }
-
         private UserModel GetAuthUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -160,8 +152,32 @@ namespace EtkinlikTakip.Controllers
         public JsonResult GetInvitedUsers(long Id)
         {
             ActivityInviteManager aimngr = new ActivityInviteManager(new EfActivityInviteRepository());
-            var users = aimngr.GetInvitesByActivityId(Id);
+            var users = aimngr.GetInvitees(Id);
             return Json(users);
+        }
+
+        [Authorize(Roles = "Admin,Yetkili,Personel")]
+        public IActionResult InvitedActivities()
+        {
+            var authUser = GetAuthUser();
+            HttpContext.Session.SetString("userName", authUser.Username);
+            HttpContext.Session.SetString("userRole", authUser.Role);
+            return View();
+        }
+
+        [Authorize(Roles = "Admin,Yetkili,Personel")]
+        public ActionResult ReadInvitedActivities([DataSourceRequest] DataSourceRequest request)
+        {
+            var authUser = GetAuthUser();
+            return Json(activitymngr.GetListOrderByCreatedTimeAndByUserId(authUser.userId).ToDataSourceResult(request));
+        }
+
+        [Authorize(Roles = "Admin,Yetkili")]
+        public ActionResult GetConfirmedActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)
+        {
+            ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
+            var users = activityInvitemngr.GetInvitees(activityId,true);
+            return Json(users.ToDataSourceResult(request));
         }
     }
 }

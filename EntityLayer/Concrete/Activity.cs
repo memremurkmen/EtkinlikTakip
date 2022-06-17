@@ -26,6 +26,7 @@ namespace EntityLayer.Concrete
 
         public string Image { get; set; }
         public string Location { get; set; }
+        public string Group { get; set; }
         public int MaksKontenjan { get; set; }
 
         public bool IsConfirmed { get; set; }

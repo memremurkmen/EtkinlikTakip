@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 @{
-    ViewData["Title"] = "AllActivities";
+    ViewData["Title"] = "Tüm Etkinlikler";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -21,11 +21,11 @@
     columns.Bound(c => c.Activity.Description).Title("Açıklama");
     columns.Bound(c => c.Activity.Location).Title("Lokasyon");
     columns.Bound(c => c.Activity.MaksKontenjan).Title("Kontenjan");
-    columns.Bound(c => c.Activity.Start).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm:ss') #").Title("Başlangıç");
-    columns.Bound(c => c.Activity.End).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.End), 'dd/MM/yyyy HH:mm:ss') #").Title("Bitiş");
+    columns.Bound(c => c.Activity.Start).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #").Title("Başlangıç");
+    columns.Bound(c => c.Activity.End).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.End), 'dd/MM/yyyy HH:mm') #").Title("Bitiş");
     columns.Bound(c => c.Activity.IsConfirmed).Title("Onay").ClientTemplate("<span id='badge_#=ActivityID#' class='badgeTemplate'></span>");
     columns.Command(command => {
-    command.Edit();
+        @*command.Edit();*@
     if (HttpContextAccessor.HttpContext.Session.GetString("userRole") == "Admin")
     {
     command.Custom("Onayla").IconClass("k-icon k-i-check").Click("confirmActivity");
@@ -81,6 +81,7 @@
                  "<ul>" +
                      "<li><label><strong>Başlık:</strong></label> #= Activity.Title #</li>" +
                      "<li><label><strong>Açıklama:</strong></label> #= Activity.Description #</li>" +
+                     "<li><label><strong>Grup:</strong></label> #= Activity.Group #</li>" +
                      "<li><label><strong>Lokasyon:</strong></label> #= Activity.Location #</li>" +
                      "<li><label><strong>Kontenjan:</strong></label> #= Activity.MaksKontenjan #</li>" +
                      "<li><label><strong>Başlangıç Tarihi:</strong></label> #= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #</li>" +
@@ -97,17 +98,18 @@
              "</div>"
          );
             items.Add().Text("Davetliler").Content(@<text>
-                                    @(Html.Kendo().Grid<ActivityInvite>()
+                                @(Html.Kendo().Grid<ActivityInvite>()
                     .Name("grid_#=ActivityID#")
                     .Columns(columns =>
                     {
                         columns.Bound(o => o.InvitedUser.UserName).Title("Davetli");
                         columns.Bound(o => o.IsConfirmed).Title("Onay").ClientTemplate("<span class='badgeTemplate'></span>");
-                        columns.Bound(o => o.AIConfirmedUser.UserName).Title("Onaylayan Kullanıcı");
+                                @*columns.Bound(o => o.AIConfirmedUser.UserName).Title("Onaylayan Kullanıcı");*@
                         columns.Bound(o => o.AICreatedUser.UserName).Title("Daveti Oluşturan Kullanıcı");
                         columns.Command(command => {
+                            command.Custom("Daveti Onayla").IconClass("k-icon k-i-close").Click("confirmInvitedUser");
                             command.Custom("Davetli Sil").IconClass("k-icon k-i-close").Click("deleteInvitedUser");
-                            }).Width(50);
+                            }).Width(150);
                     })
                     .Events(events => {
                         events.DataBound("onUserDataBound");
@@ -167,7 +169,6 @@
                     themeColor: themeColor,
                     text: text,
                 });
-
                 kendo.bind($(this), dataItem);
             }
         });
@@ -309,6 +310,40 @@
         }
     }
 
+    function confirmInvitedUser(e) {
+        var model = this.dataItem($(e.currentTarget).closest("tr"));
+        $.ajax({
+            url: "@Url.Action("ConfirmInvitedUser", "ActivityManage")",
+            type: 'POST',
+            data: { 'invitedUserId': model.Id },
+            success: function(response) {
+                swal({
+                    title: 'İşlem Tamam!',
+                    text: "Davetli başarıyla onaylandı.",
+                    icon: 'success',
+                    buttons: {
+                        confirm: {
+                            text: "Tamam",
+                            value: true,
+                            visible: true,
+                            className: "",
+                            closeModal: true
+                        }
+                    }
+                }).then(function() {
+                    location.reload();
+                })
+            },
+            error: function(response) {
+                swal(
+                    'Davetli Onaylanamadı!',
+                    'Davetli onaylanırken bir hata ile karşılaşıldı.',
+                    'error'
+                )
+            }
+        });
+    }
+
     function deleteInvitedUser(e) {
         var model = this.dataItem($(e.currentTarget).closest("tr"));
         swal({
@@ -333,7 +368,6 @@
             }
         }).then(function(value) {
             if (value) {
-                alert(model.Id);
                 $.ajax({
                     url: "@Url.Action("DeleteInvitedUser", "ActivityManage")",
                     type: 'POST',

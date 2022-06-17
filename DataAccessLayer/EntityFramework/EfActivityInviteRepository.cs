@@ -41,8 +41,16 @@ namespace DataAccessLayer.EntityFramework
             ai.DeletedTime = deletedTime;
             c.SaveChanges();
         }
+        public void ChangeInviteConfirmation(Guid activityInviteId, bool isConfirmed, long confirmedBy, DateTime confirmedTime)
+        {
+            var ai = c.ActivityInvite.Find(activityInviteId);
+            ai.IsConfirmed = isConfirmed;
+            ai.ConfirmedBy = confirmedBy;
+            ai.ConfirmedTime = confirmedTime;
+            c.SaveChanges();
+        }
 
-        public IList<ActivityInvite> GetInvitesByActivityId(long activityId)
+        public IList<ActivityInvite> GetInvitees(long activityId)
         {
             var activity = (from ai in c.ActivityInvite
                             .Include(a => a.InvitedUser)
@@ -62,5 +70,27 @@ namespace DataAccessLayer.EntityFramework
                             }).ToList();
             return activity;
         }
+        
+        public IList<ActivityInvite> GetInvitees(long activityId, bool isConfirmed)
+        {
+            var activity = (from ai in c.ActivityInvite
+                            .Include(a => a.InvitedUser)
+                            .Include(a => a.AICreatedUser)
+                            .Include(a => a.AIConfirmedUser)
+                            join a in c.Activity
+                            on ai.ActivityId equals a.ID
+                            where ai.ActivityId == activityId && ai.IsDeleted == false && ai.IsConfirmed == isConfirmed
+                            select new ActivityInvite
+                            {
+                                Id = ai.Id,
+                                InvitedUser = ai.InvitedUser,
+                                AICreatedUser = ai.AICreatedUser,
+                                AIConfirmedUser = ai.AIConfirmedUser,
+                                IsConfirmed = ai.IsConfirmed,
+                                AIActivity = a
+                            }).ToList();
+            return activity;
+        }
+
     }
 }

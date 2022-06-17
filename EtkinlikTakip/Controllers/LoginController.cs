@@ -53,9 +53,9 @@ namespace EtkinlikTakip.Controllers
 
         [AllowAnonymous]
         [HttpPost]
-        public async Task<IActionResult> LoginAsync(UserModel kullanici)
+        public async Task<IActionResult> LoginAsync(string username, string password)
         {
-            var userRole = userRolemngr.GetByUserNameAndPass(kullanici.Username, kullanici.Password);
+            var userRole = userRolemngr.GetByUserNameAndPass(username, password);
             if (userRole.Count != 0)
             {
                 var claims = new List<Claim>//authorize için yetki veriliyor
@@ -70,13 +70,9 @@ namespace EtkinlikTakip.Controllers
                 HttpContext.Session.SetString("userId", userRole[0].User.Id.ToString());
                 HttpContext.Session.SetString("userName", userRole[0].User.UserName);
                 HttpContext.Session.SetString("userRole", userRole[0].Role.RoleName);
-
-                //CookieOptions options = new CookieOptions();
-                //options.Expires = DateTime.Now.AddDays(2);//cookie 2 gün tutuluyor
-                //Response.Cookies.Append("UserId", userRole[0].User.Id.ToString(), options);
-                return RedirectToAction("Activities", "Activity");
+                return Json(new { success = true, loggedIn = true });
             }
-            return RedirectToAction("Login", "Login");
+            return Json(new { success = true, loggedIn = false });
         }
 
         public async Task<ActionResult> LogOutAsync()

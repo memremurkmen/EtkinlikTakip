@@ -1,0 +1,124 @@
+﻿@using EntityLayer.Concrete
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewData["Title"] = "Etkinliklerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <p>
+        <h3>Davetli Olduğum Etkinlikler</h3>
+    </p>
+
+    @(Html.Kendo().Grid<ActivityViewModel>()
+    .Name("Grid")
+    .Columns(columns =>
+    {
+    columns.Bound(c => c.Activity.Image).ClientTemplate("#if(Activity.Image != null){#" +
+    "<img class='ImgTemplate' src='/images/#= Activity.Image #' alt='#= Activity.Title #' Title='#= Activity.Title #' height='62' width='62'/>#}#");
+    columns.Bound(c => c.Activity.Title).Title("Başlık");
+    columns.Bound(c => c.Activity.Description).Title("Açıklama");
+    columns.Bound(c => c.Activity.Group).Title("Grup");
+    columns.Bound(c => c.Activity.Location).Title("Lokasyon");
+    columns.Bound(c => c.Activity.MaksKontenjan).Title("Kontenjan");
+    columns.Bound(c => c.Activity.Start).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #").Title("Başlangıç");
+    columns.Bound(c => c.Activity.End).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.End), 'dd/MM/yyyy HH:mm') #").Title("Bitiş");
+
+    })
+    .ToolBar(t => t.Search().Text("Ara"))
+    .Search(s => {
+    s.Field(o => o.Activity.Title, "contains");
+    s.Field(o => o.Activity.Description, "contains");
+    s.Field(o => o.Activity.Location, "contains");
+    s.Field(o => o.Activity.Group, "contains");
+    })
+    .Pageable(p => {
+    p.Refresh(true);
+    p.PageSizes(true);
+    })
+    .Sortable(true)
+    .Filterable()
+    @*.ClientDetailTemplateId("template")*@
+    .DataSource(dataSource => dataSource
+    .Ajax()
+    .PageSize(10)
+    .Model(model =>
+    {
+    model.Id(p => p.Activity.ID);
+    model.Field(p => p.Activity.Image).Editable(false);
+    model.Field(p => p.Activity.Title).Editable(true);
+    model.Field(p => p.Activity.Description).Editable(true);
+    model.Field(p => p.Activity.Start).Editable(true);
+    model.Field(p => p.Activity.End).Editable(true);
+    model.Field(p => p.Activity.IsConfirmed).Editable(false);
+    })
+    .Read(read => read.Action("ReadInvitedActivities", "Activity"))
+    .ServerOperation(false)
+    )
+    )
+</div>
+<script id="template" type="text/kendo-tmpl">
+    @(Html.Kendo().TabStrip()
+          .Name("tabStrip_#=ActivityID#")
+          .SelectedIndex(0)
+          .Animation(animation => animation.Open(open => open.Fade(FadeDirection.In)))
+          .Items(items =>
+          {
+            items.Add().Text("Etkinlik Detayı").Content(
+             "<div class='activity-details'>" +
+                 "<ul>" +
+                     "<li><label><strong>Başlık:</strong></label> #= Activity.Title #</li>" +
+                     "<li><label><strong>Açıklama:</strong></label> #= Activity.Description #</li>" +
+                     "<li><label><strong>Grup:</strong></label> #= Activity.Group #</li>" +
+                     "<li><label><strong>Lokasyon:</strong></label> #= Activity.Location #</li>" +
+                     "<li><label><strong>Kontenjan:</strong></label> #= Activity.MaksKontenjan #</li>" +
+                     "<li><label><strong>Başlangıç Tarihi:</strong></label> #= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #</li>" +
+                     "<li><label><strong>Bitiş Tarihi:</strong></label> #= kendo.toString(kendo.parseDate(Activity.End), 'dd/MM/yyyy HH:mm') #</li>" +
+                     "<li><label><strong>Oluşturan Kullanıcı:</strong></label> #= Activity.CreatedUser.UserName #</li>" +
+                     "<li><label><strong>Oluşturulma Tarihi:</strong></label> #= kendo.toString(kendo.parseDate(Activity.CreatedTime), 'dd/MM/yyyy HH:mm:ss') #</li>" +
+                 "</ul>" +
+             "</div>"
+         );
+            items.Add().Text("Davetliler").Content(@<text>
+                    @(Html.Kendo().Grid<ActivityInvite>()
+                    .Name("grid_#=ActivityID#")
+                    .Columns(columns =>
+                    {
+                        columns.Bound(o => o.InvitedUser.UserName).Title("Davetli");
+                    })
+                    .ToolBar(t => t.Search().Text("Ara"))
+                    .Search(s => {
+                        s.Field(o => o.InvitedUser.UserName, "contains");
+                    })
+                    .Pageable(p => {
+                        p.Refresh(true);
+                        p.PageSizes(true);
+                    })
+                    .DataSource(dataSource => dataSource
+                        .Ajax()
+                        .PageSize(5)
+                        .Read(read => read.Action("GetConfirmedActivityInvitees", "Activity", new{ activityId = "#=ActivityID#" }))
+                    )
+                    .Sortable()
+                    .ToClientTemplate())</text>);
+    }).ToClientTemplate())
+</script>
+
+<style>
+
+    .k-grid tbody tr {
+        line-height: 20px;
+    }
+
+    .k-grid tbody td {
+        padding: 5px;
+    }
+
+    .k-grid .k-grid-search {
+        display: flex;
+        margin-left: auto;
+        margin-right: 0;
+    }
+</style>
+

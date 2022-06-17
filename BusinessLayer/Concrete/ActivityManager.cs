@@ -59,10 +59,17 @@ namespace BusinessLayer.Concrete
         {
             return _activityDal.GetListOrderByCreatedTime();
         }
-
-        public void ChangeActivityConfirmation(long activityId, bool isConfirmed, long updatedBy, DateTime updatedTime)
+        
+        public IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId)
         {
-            _activityDal.ChangeActivityConfirmation(activityId, isConfirmed, updatedBy, updatedTime);
+            return _activityDal.GetListOrderByCreatedTimeAndByUserId(userId);
+        }
+
+       
+
+        public void ChangeActivityConfirmation(long activityId, bool isConfirmed, long confirmedBy, DateTime confirmedTime)
+        {
+            _activityDal.ChangeActivityConfirmation(activityId, isConfirmed, confirmedBy, confirmedTime);
         }
 
 

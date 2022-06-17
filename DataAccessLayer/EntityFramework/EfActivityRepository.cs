@@ -15,12 +15,12 @@ namespace DataAccessLayer.EntityFramework
     {
         Context c = new Context();
 
-        public void ChangeActivityConfirmation(long activityId, bool isConfirmed, long updatedBy, DateTime updatedTime)
+        public void ChangeActivityConfirmation(long activityId, bool isConfirmed, long confirmedBy, DateTime confirmedTime)
         {
             var a = c.Activity.Find(activityId);
             a.IsConfirmed = isConfirmed;
-            a.UpdatedBy = updatedBy;
-            a.UpdatedTime = updatedTime;
+            a.ConfirmedBy = confirmedBy;
+            a.ConfirmedTime = confirmedTime;
             c.SaveChanges();
         }
         public bool CheckEmptyKontenjan(long activityId)
@@ -65,6 +65,21 @@ namespace DataAccessLayer.EntityFramework
                               {
                                   Activity = a,
                                   ActivityID = a.ID
+                              }).OrderByDescending(a => a.Activity.CreatedTime).ToList();
+            return activityVM;
+        }
+        public IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId)
+        {
+            var activityVM = (from ai in c.ActivityInvite
+                              .Include(a => a.InvitedUser)
+                              .Include(a => a.AIActivity)
+                              .Include(a => a.AICreatedUser)
+                              where ai.IsDeleted == false && ai.IsConfirmed == true && ai.InvitedUserId == userId
+                              select new ActivityViewModel
+                              {
+                                  ActivityInvite = ai,
+                                  ActivityID = ai.AIActivity.ID,
+                                  Activity = ai.AIActivity
                               }).OrderByDescending(a => a.Activity.CreatedTime).ToList();
             return activityVM;
         }

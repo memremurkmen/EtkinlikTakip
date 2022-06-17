@@ -14,7 +14,6 @@
     <environment names="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.css" />
         <link rel="stylesheet" href="~/css/site.css" />
-        <link rel="stylesheet" href="~/css/sidenav.css" />
     </environment>
     <environment names="Staging,Production">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
@@ -22,6 +21,8 @@
               asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
     </environment>
+    <script src="~/js/sweetalert2@11.js"></script>
+    <script src="~/js/sweetalert.min.js"></script>
 
 </head>
 <body style="background-image: url('../images/Cumhurbaskanligi-Kulliyesi.jpeg'); background-repeat:no-repeat; background-size:cover; background-position: center;">
@@ -35,18 +36,15 @@
             <div class="row justify-content-center" style="margin-top:50px;">
                 <div class="col-md-6 col-lg-4">
                     <div class="login-wrap p-0">
-                        <form asp-action="Login">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                            <div class="form-group">
-                                <input type="text" asp-for="Username" class="form-control" placeholder="Kullanıcı Adı" required>
-                            </div>
-                            <div class="form-group">
-                                <input type="password" asp-for="Password" class="form-control" placeholder="Şifre" required>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="form-control btn btn-primary submit px-3">Giriş Yap</button>
-                            </div>
-                        </form>
+                        <div class="form-group">
+                            <input type="text" asp-for="Username" id="username" class="form-control" placeholder="Kullanıcı Adı" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="password" asp-for="Password" id="password" class="form-control" placeholder="Şifre" required>
+                        </div>
+                        <div class="form-group">
+                            <button type="button" onclick="loginBtn()" class="form-control btn btn-primary submit px-3">Giriş Yap</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -63,6 +61,67 @@
                 asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"></script>
     </environment>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        function loginBtn(e) {
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+            $.ajax({
+                url: "@Url.Action("Login", "Login")",
+                type: 'POST',
+                data: {
+                    'username': username,
+                    'password': password
+                },
+                success: function(responseMsg) {
+                    if (!responseMsg.loggedIn) {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'bottom',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+
+                        Toast.fire({
+                            icon: 'warning',
+                            title: 'Kullanıcı adı veya şifre hatalı.'
+                        })
+                    }
+                    else {
+                        const Toast = Swal.mixin({
+                            toast: true,
+                            position: 'bottom',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true,
+                            didOpen: (toast) => {
+                                toast.addEventListener('mouseenter', Swal.stopTimer)
+                                toast.addEventListener('mouseleave', Swal.resumeTimer)
+                            }
+                        })
+
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Giriş başarılı.'
+                        })
+                        window.location.href = "Activity/Activities";
+                    }
+                },
+                error: function(response) {
+                    Toast.fire({
+                        icon: 'error',
+                        title: 'Bir hata ile karşılaşıldı.'
+                    })
+                }
+            });
+        }
+    </script>
+
 </body>
 </html>
 

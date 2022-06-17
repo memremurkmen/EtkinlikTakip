@@ -1,0 +1,158 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - EtkinlikTakip</title>
+
+    <environment names="Development">
+        <link rel="stylesheet" href="~/lib/bootstrap/css/bootstrap.css" />
+        <link rel="stylesheet" href="~/css/site.css" />
+    </environment>
+    <environment names="Staging,Production">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+              asp-fallback-href="~/lib/bootstrap/css/bootstrap.min.css"
+              asp-fallback-test-class="sr-only" asp-fallback-test-property="position" asp-fallback-test-value="absolute" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+    </environment>
+    <link href="~/css/kendo.bootstrap-main.min.css" rel="stylesheet" type="text/css" />
+    @*<link href="https://cdn.kendostatic.com/2022.2.510/styles/kendo.bootstrap-main.min.css" rel="stylesheet" type="text/css" />*@
+
+
+    <script src="~/js/sweetalert2@11.js"></script>
+    @*<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>*@
+    <script src="~/js/sweetalert.min.js"></script>
+    @*<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>*@
+    <script src="~/js/kendo.jquery.min.js"></script>
+    @*<script src="https://cdn.kendostatic.com/2022.2.510/js/jquery.min.js"></script>*@
+    <script src="~/js/kendo.jszip.min.js"></script>
+    @*<script src="https://cdn.kendostatic.com/2022.2.510/js/jszip.min.js"></script>*@
+    <script src="~/js/kendo.all.min.js"></script>
+    @*<script src="https://cdn.kendostatic.com/2022.2.510/js/kendo.all.min.js"></script>*@
+    <script src="~/js/kendo.aspnetmvc.min.js"></script>
+    @*<script src="https://cdn.kendostatic.com/2022.2.510/js/kendo.aspnetmvc.min.js"></script>*@
+    <script src="https://cdn.kendostatic.com/2022.2.510/js/cultures/kendo.culture.tr-TR.min.js"></script>
+    <script src="https://cdn.kendostatic.com/2022.2.510/js/messages/kendo.messages.tr-TR.min.js"></script>
+    <script src="https://cdn.kendostatic.com/2022.2.510/js/kendo.timezones.min.js"></script>
+    <script type="text/javascript">
+        kendo.culture("tr-TR");
+    </script>
+
+    <style>
+        .sidenav {
+            height: 100%;
+            width: 200px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #171717;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 15px;
+        }
+
+            .sidenav a {
+                padding: 8px 8px 8px 32px;
+                text-decoration: none;
+                font-size: 20px;
+                color: #818181;
+                display: block;
+                transition: 0.3s;
+            }
+
+                .sidenav a:hover {
+                    color: #f1f1f1;
+                }
+
+            .sidenav .closebtn {
+                position: absolute;
+                top: 0;
+                right: 25px;
+                font-size: 36px;
+                margin-left: 50px;
+            }
+
+
+        #main {
+            transition: margin-left .5s;
+            padding: 16px;
+            margin-left: 200px;
+        }
+
+    </style>
+</head>
+<body class="k-content">
+
+    <div id="mySidenav" class="sidenav">
+        <img style="width:75px;height:75px; margin-left:62.5px" src="~/images/cumhurbaskaligi-armasi.png" alt="Cumhurbaşkanlığı Arması">
+        <a href="/Activity/Activities">Etkinlik Takvimi</a>
+        <a class="activity-AllActivities" href="/ActivityManage/AllActivities">Tüm Etkinlikler</a>
+        <a href="/Activity/InvitedActivities">Davetli Olduğum Etkinlikler</a>
+    </div>
+
+    <main id="main">
+        <div class="container-fluid">
+            <nav class="navbar navbar-expand-lg bg-light">
+                <span style="font-size:30px;cursor:pointer; " onclick="changeNav()">&#9776;</span>
+                <div class="dropdown" style="margin-left:auto;">
+                    <button class="btn btn-dark dropdown-toggle" type="button" data-toggle="dropdown">
+                        @HttpContextAccessor.HttpContext.Session.GetString("userName")
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                        @*<li><a class="dropdown-item btn-dark" href="#">Hesabım</a></li>*@
+                        <li><a class="dropdown-item btn-dark" href="/Login/LogOut">Oturumu Kapat</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <div class="container-fluid">
+            @RenderBody()
+        </div>
+    </main>
+
+
+    <environment names="Development">
+        <script src="~/lib/bootstrap/js/bootstrap.js"></script>
+    </environment>
+    <environment names="Staging,Production">
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+                asp-fallback-src="~/lib/bootstrap/js/bootstrap.min.js"
+                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal"></script>
+    </environment>
+
+    @RenderSection("scripts", required: false)
+    <script type="text/javascript">
+        var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
+        if (role == "Yetkili" || role == "Admin") {
+            $(".activity-AllActivities").show();
+            //if (role == "Admin") {
+            //    $(".activity-ActivityConfirmations").show();
+            //}
+            //else {
+            //    $(".activity-ActivityConfirmations").hide();
+            //}
+        }
+        else {
+            //$(".activity-ActivityConfirmations").hide();
+            $(".activity-AllActivities").hide();
+        }
+        var navOpen = true;
+        function changeNav() {
+            if (navOpen) {
+                document.getElementById("mySidenav").style.width = "0";
+                document.getElementById("main").style.marginLeft = "0";
+                navOpen = false;
+            }
+            else {
+                document.getElementById("mySidenav").style.width = "200px";
+                document.getElementById("main").style.marginLeft = "200px";
+                navOpen = true;
+            }
+        }
+    </script>
+</body>
+</html>

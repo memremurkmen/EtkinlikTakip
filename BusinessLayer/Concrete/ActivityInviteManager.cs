@@ -38,6 +38,13 @@ namespace BusinessLayer.Concrete
                 _activityInviteDal.DeleteActivityInviteById(activityInviteId,deletedBy,deletedTime);
             }
         }
+        public void ChangeInviteConfirmation(Guid activityInviteId, bool isConfirmed, long confirmedBy, DateTime confirmedTime)
+        {
+            if (activityInviteId != Guid.Parse("00000000-0000-0000-0000-000000000000"))
+            {
+                _activityInviteDal.ChangeInviteConfirmation(activityInviteId, isConfirmed, confirmedBy, confirmedTime);
+            }
+        }
 
         public void UpdateActivityInvite(ActivityInvite activityInvite)
         {
@@ -49,9 +56,13 @@ namespace BusinessLayer.Concrete
             return _activityInviteDal.CheckActivityInvite(activityId, invitedUserId);
         }
 
-        public IList<ActivityInvite> GetInvitesByActivityId(long activityId)
+        public IList<ActivityInvite> GetInvitees(long activityId)
         {
-            return _activityInviteDal.GetInvitesByActivityId(activityId);
+            return _activityInviteDal.GetInvitees(activityId);
+        }
+        public IList<ActivityInvite> GetInvitees(long activityId, bool isConfirmed)
+        {
+            return _activityInviteDal.GetInvitees(activityId, isConfirmed);
         }
     }
 }

@@ -38,7 +38,7 @@ namespace EtkinlikTakip.Controllers
         public ActionResult GetActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)
         {
             ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
-            var users = activityInvitemngr.GetInvitesByActivityId(activityId);
+            var users = activityInvitemngr.GetInvitees(activityId);
             return Json(users.ToDataSourceResult(request));
         }
 
@@ -85,6 +85,24 @@ namespace EtkinlikTakip.Controllers
                 return View();
             }
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yetkili")]
+        public ActionResult ConfirmInvitedUser(Guid invitedUserId)
+        {
+            try
+            {
+                ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
+                var authUser = GetAuthUser();
+                activityInvitemngr.ChangeInviteConfirmation(invitedUserId, true, authUser.userId, DateTime.Now);
+                return Json(ModelState.ToDataSourceResult());
+            }
+            catch
+            {
+                return View();
+            }
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin,Yetkili")]
         public ActionResult DeleteInvitedUser(Guid invitedUserId)

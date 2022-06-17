@@ -12,9 +12,10 @@ namespace BusinessLayer.Abstract
         void ActivityAdd(Activity activity);
         void ActivityDeleteById(long activityId, long deletedBy, DateTime deletedTime);
         void ActivityUpdate(Activity activity);
-        void ChangeActivityConfirmation(long activityId, bool isConfirmed, long updatedBy, DateTime updatedTime);
+        void ChangeActivityConfirmation(long activityId, bool isConfirmed, long confirmedBy, DateTime confirmedTime);
         IList<Activity> GetList();
         IList<ActivityViewModel> GetListOrderByCreatedTime();
+        IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId);
         IList<Activity> GetConfirmedList();
         Activity GetById(long id);
         bool CheckEmptyKontenjan(long activityId);

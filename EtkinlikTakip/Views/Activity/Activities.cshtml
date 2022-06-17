@@ -3,9 +3,18 @@
 @inject IHttpContextAccessor HttpContextAccessor
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Etkinlik Takvimi";
 }
-
+<div id="team-schedule">
+    <div id="group">
+        <strong>Yazılım Daire Başkanlığı</strong>
+        <input checked type="checkbox" id="ydb" aria-label="Yazılım Daire Başkanlığı" value="Yazılım Daire Başkanlığı">
+        <strong>İdari İşler Başkanlığı</strong>
+        <input checked type="checkbox" id="iib" aria-label="İdari İşler Başkanlığı" value="İdari İşler Başkanlığı">
+        <strong>Cumhurbaşkanlığı Koruma Dairesi Başkanlığı</strong>
+        <input checked type="checkbox" id="cbkdb" aria-label="Cumhurbaşkanlığı Koruma Dairesi Başkanlığı" value="Cumhurbaşkanlığı Koruma Dairesi Başkanlığı">
+    </div>
+</div>
 
 <div>
     @(Html.Kendo().Scheduler<Activity>()
@@ -13,13 +22,12 @@
     .Date(DateTime.Now)
     .StartTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 09, 00, 00))
     .EndTime(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 18, 00, 00))
-    .Height(550)
     .Toolbar(t => {
     t.Search();
     })
     .Editable(edit=>{
     if (HttpContextAccessor.HttpContext.Session.GetString("userRole") == "Personel")
-    {
+    {//personel giriş yapar ise düzenleme özellikleri kapatılıyor
     edit.Confirmation(false);
     edit.Create(false);
     edit.Move(false);
@@ -29,7 +37,7 @@
     edit.TemplateId("activityDetailTemplate");
     }
     else{
-    edit.TemplateId("customEditorTemplate");
+    edit.TemplateId("activityEditTemplate");
     }
     })
     .EventTemplateId("customEventTemplate")
@@ -59,25 +67,45 @@
     views.AgendaView();
     views.CustomView("Ajanda");
     })
+    .Resources(resource =>
+    {
+    resource.Add(m => m.Group)
+    .Title("Grup")
+    .DataTextField("Text")
+    .DataValueField("Value")
+    .DataColorField("Color")
+    .BindTo(new[] {
+    new { Text = "Yazılım Daire Başkanlığı", Value = "Yazılım Daire Başkanlığı", Color = "#51a0ed" } ,
+    new { Text = "İdari İşler Başkanlığı", Value = "İdari İşler Başkanlığı", Color = "#56ca85" } ,
+    new { Text = "Cumhurbaşkanlığı Koruma Dairesi Başkanlığı", Value = "Cumhurbaşkanlığı Koruma Dairesi Başkanlığı", Color = "#f8a398" }
+    });
+    })
     .DataSource(d => d
     .Model(m =>
     {
     m.Id(f => f.ID);
     m.Field(f => f.Title).DefaultValue("Başlık yok");
     m.Field(f=> f.CreatedTime).DefaultValue(DateTime.Now);
+    m.Field(f=> f.Group);
+    m.Field(f=> f.Image).DefaultValue(null);
     })
     .Read("ActivityRead", "Activity")
     .Create("ActivityCreate", "Activity")
     .Update("ActivityUpdate", "Activity")
     .Destroy("ActivityDestroy", "Activity")
+    .Filter(filters =>
+    {
+    filters.Add(model => model.Group)
+    .IsEqualTo("Yazılım Daire Başkanlığı").Or()
+    .IsEqualTo("İdari İşler Başkanlığı").Or()
+    .IsEqualTo("Cumhurbaşkanlığı Koruma Dairesi Başkanlığı");
+    })
     )
+
     )
 </div>
 
 <script type="text/javascript">
-    document.addEventListener("keydown", function(event) {
-        if (event.keyCode == 67) { }
-    });
     var Ajanda = kendo.ui.AgendaView.extend({
         startDate: function() {
             var date = kendo.ui.AgendaView.fn.startDate.call(this);
@@ -109,6 +137,27 @@
         });
     }
 
+    $(document).ready(function() {
+        $("#group :checkbox").change(function(e) {
+            var checked = $.map($("#group :checked"), function(checkbox) {
+                return $(checkbox).val();
+            });
+            var filter = {
+                logic: "or",
+                filters: $.map(checked, function(value) {
+                    return {
+                        operator: "eq",
+                        field: "Group",
+                        value: value
+                    };
+                })
+            };
+            var scheduler = $("#scheduler").data("kendoScheduler");
+
+            scheduler.dataSource.filter(filter);
+        });
+    })
+
     function scheduler_edit(e) {
         var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
         var userId = '@HttpContextAccessor.HttpContext.Session.GetString("userId")';
@@ -120,7 +169,6 @@
             $(".k-edit-buttons").prepend("<input value='Davet isteği yolla' type='button' " +
                 "onclick='InviteRequest(" + e.event.id + "," + userId + ")' " +
                 "class='k-button k-button-md k-rounded-md k-button-solid k-button-solid-success'>");
-
         }
         else {
             detailUserGrid(e.event.id);
@@ -239,7 +287,7 @@
     </div>
 </script>
 
-<script id="customEditorTemplate" type="text/x-kendo-template">
+<script id="activityEditTemplate" type="text/x-kendo-template">
     <div style="width: 100%; display: table; border-spacing:3px;">
         <div style="display: table-row;">
             <div style=" display: table-cell; padding:10px; ">
@@ -296,7 +344,12 @@
     @*aciklama*@
                     <div class="k-edit-label"><label for="description">Açıklama</label></div>
                     <div data-container-for="description" class="k-edit-field">
-                        <textarea name="description" rows="3" data-role="textarea" data-bind="value:description"></textarea>
+                        <textarea name="description" rows="4" data-role="textarea" data-bind="value:description"></textarea>
+                    </div>
+    @*Group*@
+                    <div class="k-edit-label"><label for="Group">Grup</label></div>
+                    <div data-container-for="Group" class="k-edit-field">
+                        <input type="text" data-role="textbox" name="Group" required="required" data-required-msg="Lütfen grup bilgisini boş bırakmayınız!" data-bind="value:Group"/>
                     </div>
     @*lokasyon*@
                     <div class="k-edit-label"><label for="Location">Lokasyon</label></div>
@@ -311,7 +364,7 @@
     @*Image*@
                     <div class="k-edit-label"><label for="Image">Fotoğraf</label></div>
                     <div data-container-for="Image" class="k-edit-field">
-                        <input id="Image" data-role="file" name="Image" value="Image" type="file" accept="image/*">
+                        <input id="Image" type="file" data-role="file" name="Image" value="Image" type="file" accept="image/*">
                         #if(Image != null){#
                             <img src="/images/#= Image #" style="padding: 5px 5px 5px 5px; max-width:300px; max-height:150px; min-width:100px; min-height:100px;" width="auto" height="auto" >
                         #}#
@@ -321,9 +374,23 @@
             <div style="display: table-cell; vertical-align: top; padding:10px; ">
                 <div class="container-fluid">
                     <h4>Davetliler</h4>
+                    @*<div class="col-md-6 text-right">
+                    <select id="userDropdown" class="form-control selectpicker" data-live-search="true">
+                    @{
+                        foreach (var item in Model.users)
+                        {
+                            <option data-tokens="@item.Ad @item.Soyad @item.TcNo" value="@item.KullaniciId">@item.Ad @item.Soyad TC:@item.TcNo</option>
+                        }
+                    }
+                    </select>
+                </div>
+                <div class="col-md-2 text-right">
+                    <button class="btn btn-success" id="davetliEkleBtn" onclick="davetliEkleBtnClick()">Ekle</button>
+                </div>
+                    <br>*@
                     <div id="userGrid" style=""></div>
                     <br>
-                    <input value="Davetli ekle" type="button" onclick="userDropdown(#=ID#)" class='k-button k-button-md k-rounded-md k-button-solid k-button-solid-success'>
+                <input value="Davetli ekle" type="button" onclick="userDropdown(#=ID#)" class='k-button k-button-md k-rounded-md k-button-solid k-button-solid-success'>
                 </div>
             </div>
         </div>
@@ -396,6 +463,11 @@
     <div class="k-edit-label"><strong for="description">Açıklama</strong></div>
     <div data-container-for="description" class="k-edit-field">
         <label style="padding: 7px 0px;" for="description">#= description #</label>
+    </div>
+    @*group*@
+    <div class="k-edit-label"><strong for="Group">Grup</strong></div>
+    <div data-container-for="Group" class="k-edit-field">
+        <label style="padding: 7px 0px;" for="Group">#= Group #</label>
     </div>
     @*lokasyon*@
     <div class="k-edit-label"><strong for="Location">Lokasyon</strong></div>

@@ -10,7 +10,9 @@ namespace DataAccessLayer.Abstract
     public interface IActivityInviteDal : IGenericDal<ActivityInvite>
     {
         void DeleteActivityInviteById(Guid activityInviteId, long deletedBy, DateTime deletedTime);
+        void ChangeInviteConfirmation(Guid activityInviteId, bool isConfirmed, long confirmedBy, DateTime confirmedTime);
         ActivityInvite CheckActivityInvite(long activityId, long invitedUserId);
-        IList<ActivityInvite> GetInvitesByActivityId(long activityId);
+        IList<ActivityInvite> GetInvitees(long activityId);
+        IList<ActivityInvite> GetInvitees(long activityId, bool isConfirmed);
     }
 }

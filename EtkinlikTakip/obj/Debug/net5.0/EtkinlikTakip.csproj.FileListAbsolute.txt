@@ -177,7 +177,6 @@ C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\V
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\EditorTemplates\Time.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\EditorTemplates\Url.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\Error.cshtml.g.cs
-C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\_Layout.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\_ViewImports.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\_ViewStart.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\EtkinlikTakip.RazorTargetAssemblyInfo.cache
@@ -194,3 +193,6 @@ C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\V
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\bin\Debug\net5.0\Microsoft.EntityFrameworkCore.Design.dll
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Activity\Activities.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\ActivityManage\AllActivities.cshtml.g.cs
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Activity\InvitedActivities.cshtml.g.cs
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\EditorTemplates\_Layout.cshtml.g.cs
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\_Layout.cshtml.g.cs
