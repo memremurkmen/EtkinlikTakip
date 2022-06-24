@@ -22,7 +22,7 @@ namespace DataAccessLayer.EntityFramework
                           on ai.ActivityId equals a.ID
                           join u in c.User
                           on ai.InvitedUserId equals u.Id
-                          where ai.ActivityId == activityId && ai.InvitedUserId == invitedUserId
+                          where ai.ActivityId == activityId && ai.InvitedUserId == invitedUserId && ai.IsDeleted == false
                           select new ActivityInvite
                           {
                               InvitedUser = u,

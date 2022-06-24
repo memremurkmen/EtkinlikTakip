@@ -53,7 +53,7 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("EndTimezone")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Group")
+                    b.Property<string>("Grup")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")

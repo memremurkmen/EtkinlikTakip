@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 
@@ -112,7 +113,12 @@ namespace EtkinlikTakip.Controllers
         {
             ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
             ActivityInvite ai = activityInvitemngr.CheckActivityInvite(activityId, invitedUserId);
-            if (ai == null)//etkinliğe başvuru yapmak istenen kişini zaten başvuru yapıp yapmadığı kontrol edilecek
+            bool aiEmptyKontenjan = activitymngr.CheckEmptyKontenjan(activityId);
+            if (!aiEmptyKontenjan)
+            {
+                return Json(new { success = true, responseText = "Yeterli kontenjan yok.", isInvited = true });
+            }
+            else if (ai == null)//etkinliğe başvuru yapmak istenen kişini zaten başvuru yapıp yapmadığı kontrol edilecek
             {
                 var authUser = GetAuthUser();
                 ActivityInvite invitedUser = new ActivityInvite();
@@ -148,6 +154,16 @@ namespace EtkinlikTakip.Controllers
             return Json(userList);
         }
 
+        public JsonResult GetAllLocations([DataSourceRequest] DataSourceRequest request)
+        {
+            IList<string> rooms = new List<string>() { 
+                { "Büyük Toplantı Salonu" },
+                { "Küçük Toplantı Salonu" },
+                { "Sunum Salonu" } 
+            };
+            return Json(rooms.ToDataSourceResult(request));
+        }
+
         [Authorize(Roles = "Admin,Yetkili")]
         public JsonResult GetInvitedUsers(long Id)
         {
@@ -165,12 +181,14 @@ namespace EtkinlikTakip.Controllers
             return View();
         }
 
+
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public ActionResult ReadInvitedActivities([DataSourceRequest] DataSourceRequest request)
         {
             var authUser = GetAuthUser();
             return Json(activitymngr.GetListOrderByCreatedTimeAndByUserId(authUser.userId).ToDataSourceResult(request));
         }
+
 
         [Authorize(Roles = "Admin,Yetkili")]
         public ActionResult GetConfirmedActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)

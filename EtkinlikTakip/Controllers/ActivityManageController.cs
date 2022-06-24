@@ -25,7 +25,7 @@ namespace EtkinlikTakip.Controllers
             var authUser = GetAuthUser();//düzenlenecek
             HttpContext.Session.SetString("userName", authUser.Username);
             HttpContext.Session.SetString("userRole", authUser.Role);
-            return View();
+            return View(activitymngr.GetListOrderByCreatedTime());
         }
 
         [Authorize(Roles = "Admin,Yetkili")]
@@ -38,8 +38,7 @@ namespace EtkinlikTakip.Controllers
         public ActionResult GetActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)
         {
             ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
-            var users = activityInvitemngr.GetInvitees(activityId);
-            return Json(users.ToDataSourceResult(request));
+            return Json(activityInvitemngr.GetInvitees(activityId).ToDataSourceResult(request));
         }
 
         [AcceptVerbs("Post")]

@@ -28,7 +28,7 @@ namespace DataAccessLayer.EntityFramework
             var activityInvites = (from ai in c.ActivityInvite
                                    join a in c.Activity
                                    on ai.ActivityId equals a.ID
-                                   where ai.ActivityId == activityId
+                                   where ai.ActivityId == activityId && ai.IsDeleted == false
                                    select new ActivityInvite
                                    {
                                        AIActivity = a

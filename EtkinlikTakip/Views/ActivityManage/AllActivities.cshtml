@@ -1,4 +1,5 @@
-﻿@using EntityLayer.Concrete
+﻿@model IEnumerable<ActivityViewModel>
+@using EntityLayer.Concrete
 @using Microsoft.AspNetCore.Http
 @inject IHttpContextAccessor HttpContextAccessor
 @{
@@ -11,7 +12,7 @@
         <h3>Tüm Etkinlikler</h3>
     </p>
 
-    @(Html.Kendo().Grid<ActivityViewModel>()
+    @(Html.Kendo().Grid(Model)
     .Name("Grid")
     .Columns(columns =>
     {
@@ -21,11 +22,12 @@
     columns.Bound(c => c.Activity.Description).Title("Açıklama");
     columns.Bound(c => c.Activity.Location).Title("Lokasyon");
     columns.Bound(c => c.Activity.MaksKontenjan).Title("Kontenjan");
-    columns.Bound(c => c.Activity.Start).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #").Title("Başlangıç");
+    columns.Bound(c => c.Activity.Start).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #")
+    .Filterable(filterable => filterable.Extra(true)).Title("Başlangıç");
     columns.Bound(c => c.Activity.End).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.End), 'dd/MM/yyyy HH:mm') #").Title("Bitiş");
     columns.Bound(c => c.Activity.IsConfirmed).Title("Onay").ClientTemplate("<span id='badge_#=ActivityID#' class='badgeTemplate'></span>");
     columns.Command(command => {
-        @*command.Edit();*@
+            @*command.Edit();*@
     if (HttpContextAccessor.HttpContext.Session.GetString("userRole") == "Admin")
     {
     command.Custom("Onayla").IconClass("k-icon k-i-check").Click("confirmActivity");
@@ -63,7 +65,7 @@
     model.Field(p => p.Activity.End).Editable(true);
     model.Field(p => p.Activity.IsConfirmed).Editable(false);
     })
-    .Read(read => read.Action("ReadActivity", "ActivityManage"))
+            @*.Read(read => read.Action("ReadActivity", "ActivityManage"))*@
     .Update(update => update.Action("UpdateActivity", "ActivityManage"))
     .ServerOperation(false)
     )
@@ -81,7 +83,7 @@
                  "<ul>" +
                      "<li><label><strong>Başlık:</strong></label> #= Activity.Title #</li>" +
                      "<li><label><strong>Açıklama:</strong></label> #= Activity.Description #</li>" +
-                     "<li><label><strong>Grup:</strong></label> #= Activity.Group #</li>" +
+                     "<li><label><strong>Grup:</strong></label> #= Activity.Grup #</li>" +
                      "<li><label><strong>Lokasyon:</strong></label> #= Activity.Location #</li>" +
                      "<li><label><strong>Kontenjan:</strong></label> #= Activity.MaksKontenjan #</li>" +
                      "<li><label><strong>Başlangıç Tarihi:</strong></label> #= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #</li>" +
@@ -98,18 +100,17 @@
              "</div>"
          );
             items.Add().Text("Davetliler").Content(@<text>
-                                @(Html.Kendo().Grid<ActivityInvite>()
+                    @(Html.Kendo().Grid<ActivityInvite>()
                     .Name("grid_#=ActivityID#")
                     .Columns(columns =>
                     {
                         columns.Bound(o => o.InvitedUser.UserName).Title("Davetli");
                         columns.Bound(o => o.IsConfirmed).Title("Onay").ClientTemplate("<span class='badgeTemplate'></span>");
-                                @*columns.Bound(o => o.AIConfirmedUser.UserName).Title("Onaylayan Kullanıcı");*@
                         columns.Bound(o => o.AICreatedUser.UserName).Title("Daveti Oluşturan Kullanıcı");
                         columns.Command(command => {
                             command.Custom("Daveti Onayla").IconClass("k-icon k-i-close").Click("confirmInvitedUser");
                             command.Custom("Davetli Sil").IconClass("k-icon k-i-close").Click("deleteInvitedUser");
-                            }).Width(150);
+                            }).Width(300);
                     })
                     .Events(events => {
                         events.DataBound("onUserDataBound");
@@ -125,6 +126,13 @@
                     .DataSource(dataSource => dataSource
                         .Ajax()
                         .PageSize(5)
+                        .Model(model =>
+                        {
+                            model.Id(p => p.Id);
+                            model.Field(p => p.InvitedUserId).Editable(false);
+                            model.Field(p => p.ActivityId).Editable(false);
+                            model.Field(p => p.ConfirmedBy).Editable(false);
+                        })
                         .Read(read => read.Action("GetActivityInvitees", "ActivityManage", new{ activityId = "#=ActivityID#" }))
                     )
                     .Sortable()
@@ -132,6 +140,7 @@
     }).ToClientTemplate())
 </script>
 <script>
+
     function onActivityDataBound(e) {
         var grid = this;
         grid.table.find("tr").each(function() {
@@ -173,7 +182,6 @@
             }
         });
     }
-
 
     function confirmActivity(e) {
         var model = this.dataItem($(e.currentTarget).closest("tr"));
@@ -220,7 +228,9 @@
                                     }
                                 }
                             }).then(function() {
-                                location.reload();
+                                $('#badge_' + model.Activity.ID).kendoBadge({ themeColor: 'success', text: 'Onaylandı' });
+                                var element = document.getElementById("badge_" + model.Activity.ID);
+                                element.classList.remove("k-badge-error");
                             })
                         },
                         error: function(response) {
@@ -238,6 +248,22 @@
                         'Etkinlik onaylanmadı.',
                         'error'
                     )
+                }
+            })
+        }
+        else {
+            swal({
+                title: 'Uyarı!',
+                text: "Etkinlik zaten onaylandı.",
+                icon: 'warning',
+                buttons: {
+                    confirm: {
+                        text: "Tamam",
+                        value: true,
+                        visible: true,
+                        className: "",
+                        closeModal: true
+                    }
                 }
             })
         }
@@ -287,7 +313,8 @@
                                     }
                                 }
                             }).then(function() {
-                                location.reload();
+                                var grid = $("#Grid").data("kendoGrid");
+                                grid.dataSource.remove(model);
                             })
                         },
                         error: function(response) {
@@ -312,36 +339,57 @@
 
     function confirmInvitedUser(e) {
         var model = this.dataItem($(e.currentTarget).closest("tr"));
-        $.ajax({
-            url: "@Url.Action("ConfirmInvitedUser", "ActivityManage")",
-            type: 'POST',
-            data: { 'invitedUserId': model.Id },
-            success: function(response) {
-                swal({
-                    title: 'İşlem Tamam!',
-                    text: "Davetli başarıyla onaylandı.",
-                    icon: 'success',
-                    buttons: {
-                        confirm: {
-                            text: "Tamam",
-                            value: true,
-                            visible: true,
-                            className: "",
-                            closeModal: true
+        if (!model.IsConfirmed) {
+            $.ajax({
+                url: "@Url.Action("ConfirmInvitedUser", "ActivityManage")",
+                type: 'POST',
+                data: { 'invitedUserId': model.Id },
+                success: function(response) {
+                    swal({
+                        title: 'İşlem Tamam!',
+                        text: "Davetli başarıyla onaylandı.",
+                        icon: 'success',
+                        buttons: {
+                            confirm: {
+                                text: "Tamam",
+                                value: true,
+                                visible: true,
+                                className: "",
+                                closeModal: true
+                            }
                         }
+                    }).then(function() {
+                        $(e.currentTarget).closest("tr").find(".badgeTemplate").kendoBadge({ themeColor: 'success', text: 'Onaylandı' });
+                        //alert("asd: " + $(e.currentTarget).find(".badgeTemplate").value);
+                        $(e.currentTarget).closest("tr").find(".badgeTemplate").classList.remove("k-badge-error");
+                        //location.reload();
+                    })
+                },
+                error: function(response) {
+                    swal(
+                        'Davetli Onaylanamadı!',
+                        'Davetli onaylanırken bir hata ile karşılaşıldı.',
+                        'error'
+                    )
+                }
+            });
+        }
+        else {
+            swal({
+                title: 'Uyarı!',
+                text: "Davetli zaten onaylandı.",
+                icon: 'warning',
+                buttons: {
+                    confirm: {
+                        text: "Tamam",
+                        value: true,
+                        visible: true,
+                        className: "",
+                        closeModal: true
                     }
-                }).then(function() {
-                    location.reload();
-                })
-            },
-            error: function(response) {
-                swal(
-                    'Davetli Onaylanamadı!',
-                    'Davetli onaylanırken bir hata ile karşılaşıldı.',
-                    'error'
-                )
-            }
-        });
+                }
+            })
+        }
     }
 
     function deleteInvitedUser(e) {
@@ -387,7 +435,9 @@
                                 }
                             }
                         }).then(function() {
-                            location.reload();
+                            var grid = $("#grid_" + model.AIActivity.ID).data("kendoGrid");
+                            grid.dataSource.remove(model);
+                            //location.reload();
                         })
                     },
                     error: function(response) {

@@ -19,7 +19,7 @@
     "<img class='ImgTemplate' src='/images/#= Activity.Image #' alt='#= Activity.Title #' Title='#= Activity.Title #' height='62' width='62'/>#}#");
     columns.Bound(c => c.Activity.Title).Title("Başlık");
     columns.Bound(c => c.Activity.Description).Title("Açıklama");
-    columns.Bound(c => c.Activity.Group).Title("Grup");
+    columns.Bound(c => c.Activity.Grup).Title("Grup");
     columns.Bound(c => c.Activity.Location).Title("Lokasyon");
     columns.Bound(c => c.Activity.MaksKontenjan).Title("Kontenjan");
     columns.Bound(c => c.Activity.Start).ClientTemplate("#= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #").Title("Başlangıç");
@@ -31,7 +31,7 @@
     s.Field(o => o.Activity.Title, "contains");
     s.Field(o => o.Activity.Description, "contains");
     s.Field(o => o.Activity.Location, "contains");
-    s.Field(o => o.Activity.Group, "contains");
+    s.Field(o => o.Activity.Grup, "contains");
     })
     .Pageable(p => {
     p.Refresh(true);
@@ -39,7 +39,6 @@
     })
     .Sortable(true)
     .Filterable()
-    @*.ClientDetailTemplateId("template")*@
     .DataSource(dataSource => dataSource
     .Ajax()
     .PageSize(10)
@@ -57,6 +56,7 @@
     .ServerOperation(false)
     )
     )
+    
 </div>
 <script id="template" type="text/kendo-tmpl">
     @(Html.Kendo().TabStrip()
@@ -70,7 +70,7 @@
                  "<ul>" +
                      "<li><label><strong>Başlık:</strong></label> #= Activity.Title #</li>" +
                      "<li><label><strong>Açıklama:</strong></label> #= Activity.Description #</li>" +
-                     "<li><label><strong>Grup:</strong></label> #= Activity.Group #</li>" +
+                     "<li><label><strong>Grup:</strong></label> #= Activity.Grup #</li>" +
                      "<li><label><strong>Lokasyon:</strong></label> #= Activity.Location #</li>" +
                      "<li><label><strong>Kontenjan:</strong></label> #= Activity.MaksKontenjan #</li>" +
                      "<li><label><strong>Başlangıç Tarihi:</strong></label> #= kendo.toString(kendo.parseDate(Activity.Start), 'dd/MM/yyyy HH:mm') #</li>" +
