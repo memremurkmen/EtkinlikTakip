@@ -31,7 +31,8 @@ namespace EtkinlikTakip.Controllers
                     {
                         new Claim(ClaimTypes.Sid,userRole[0].User.Id.ToString()),//değiştirilecek
                         new Claim(ClaimTypes.Name,userRole[0].User.UserName),//değiştirilecek
-                        new Claim(ClaimTypes.Role,userRole[0].Role.RoleName)//değiştirilecek
+                        new Claim(ClaimTypes.Role,userRole[0].Role.RoleName),//değiştirilecek
+                        new Claim("Grup",userRole[0].User.Grup)//değiştirilecek
                     };
                     var userIdentity = new ClaimsIdentity(claims, "User Identity");
                     ClaimsPrincipal principal = new ClaimsPrincipal(userIdentity);
@@ -62,7 +63,8 @@ namespace EtkinlikTakip.Controllers
                 {
                     new Claim(ClaimTypes.Sid,userRole[0].User.Id.ToString()),//düzenlenecek
                     new Claim(ClaimTypes.Name,userRole[0].User.UserName),//düzenlenecek
-                    new Claim(ClaimTypes.Role, userRole[0].Role.RoleName)//düzenlenecek
+                    new Claim(ClaimTypes.Role, userRole[0].Role.RoleName),//düzenlenecek
+                    new Claim("Grup",userRole[0].User.Grup)//değiştirilecek
                 };
                 var userIdentity = new ClaimsIdentity(claims, "UserIdentity");
                 ClaimsPrincipal principal = new ClaimsPrincipal(userIdentity);
@@ -82,23 +84,6 @@ namespace EtkinlikTakip.Controllers
             return RedirectToAction("Login", "Login");
         }
 
-
-        private UserModel GetAuthUser()
-        {
-            var identity = HttpContext.User.Identity as ClaimsIdentity;
-            if (identity != null)
-            {
-                var userClaims = identity.Claims;
-
-                return new UserModel
-                {
-                    userId = long.Parse(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Sid)?.Value),
-                    Username = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
-                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value
-                };
-            }
-            return null;
-        }
 
     }
 }

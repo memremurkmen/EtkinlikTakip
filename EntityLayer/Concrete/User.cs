@@ -15,6 +15,7 @@ namespace EntityLayer.Concrete
         public long Id { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
+        public string Grup { get; set; }
         //[InverseProperty("InvitedUser")]
         //public virtual ICollection<ActivityInvite> InvitedUser { get; set; }
         //[InverseProperty("CreatedUser")]

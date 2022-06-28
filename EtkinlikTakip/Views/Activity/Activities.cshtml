@@ -46,6 +46,7 @@
     .Events(e =>
     {
     e.Edit("scheduler_edit");
+    e.Save("scheduler_save");
     })
     .Timezone("Etc/UTC")
     .Footer(false)
@@ -91,15 +92,16 @@
     m.Field(f => f.Description).DefaultValue(null);
     m.Field(f => f.IsAllDay).DefaultValue(false);
     m.Field(f=> f.CreatedTime).DefaultValue(DateTime.Now);
-    m.Field(f=> f.Image).DefaultValue(null);
-    m.Field(f=> f.Location).DefaultValue(null);
+    m.Field(f=> f.Fotograf).DefaultValue(null);
+    m.Field(f=> f.Lokasyon).DefaultValue(null);
     m.Field(f=> f.Grup).DefaultValue("Yazılım Daire Başkanlığı");
     m.Field(f=> f.MaksKontenjan).DefaultValue(1);
     m.Field(f=> f.IsConfirmed).DefaultValue(false);
     m.Field(f=> f.IsDeleted).DefaultValue(false);
     })
     .Read("ActivityRead", "Activity")
-    .Create("ActivityCreate", "Activity")
+    @*.Create("ActivityCreate", "Activity")*@
+    .Create("ActivityCreate", "Activity").Events(a => a.RequestEnd("locationErrPopup"))
     .Update("ActivityUpdate", "Activity")
     .Destroy("ActivityDestroy", "Activity")
     .Filter(filters =>
@@ -113,8 +115,19 @@
 
     )
 </div>
-
 <script type="text/javascript">
+    function locationErrPopup(e, x) {
+        console.log(e);
+        var locationCntrl = '@ViewBag.locationCntrl';
+        console.log(locationCntrl);
+        if ('@ViewBag.locationCntrl' == false) {
+            swal(
+                'Etkinlik Oluşturulamadı!',
+                'Oluşturmak istediğiniz etkinlik başka bir etkinlik ile çakışıyor.',
+                'warning'
+            )
+        }
+    }
     var Ajanda = kendo.ui.AgendaView.extend({
         startDate: function() {
             var date = kendo.ui.AgendaView.fn.startDate.call(this);
@@ -122,15 +135,24 @@
         },
         endDate: function() {
             var date = kendo.ui.AgendaView.fn.endDate.call(this);
-            return kendo.date.addDays(date, 31);
+            return kendo.date.addDays(date, 23);
         }
     });
-
+    function onActivityDataBind(e) {
+        var locationCntrl = '@ViewBag.locationCntrl';
+        console.log(locationCntrl);
+        if ('@ViewBag.locationCntrl' == false) {
+            swal(
+                'Etkinlik Oluşturulamadı!',
+                'Oluşturmak istediğiniz etkinlik başka bir etkinlik ile çakışıyor.',
+                'warning'
+            )
+        }
+    }
     function onDataBound(e) {
         var grid = this;
         grid.table.find("tr").each(function() {
             var dataItem = grid.dataItem(this);
-            console.log("user IsConfirmed: " + dataItem.IsConfirmed);
             var themeColor = dataItem.IsConfirmed ? 'success' : 'error';
             var text = dataItem.IsConfirmed ? 'Onaylandı' : 'Onaylanmadı';
 
@@ -167,7 +189,10 @@
             scheduler.dataSource.filter(filter);
         });
     })
+    function scheduler_save(e) {
 
+        console.log("Saving", e.event.title);
+    }
     function scheduler_edit(e) {
         var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
         var userId = '@HttpContextAccessor.HttpContext.Session.GetString("userId")';
@@ -284,17 +309,17 @@
             }
         });
     }
-
+    
     function getFileName() {
         var file = document.getElementById("inputfile");
-        document.getElementById("Image").value = file.files[0].name;
+        document.getElementById("Fotograf").value = file.files[0].name;
     }
 
 </script>
 <script id="customEventTemplate" type="text/x-kendo-template">
     <div class='movie-template' style='margin: 5px 5px 5px 5px;'>
-        #if(Image != null){#
-            <img src='/images/#= Image #' style="max-width:40px; max-height:40px;"/>
+        #if(Fotograf != null && Fotograf != ""){#
+            <img src='/images/#= Fotograf #' style="max-width:40px; max-height:40px;"/>
         #}#
         <strong>#= title #</strong>
         <p style="color:black;white-space: break-spaces;">#= description #</p>
@@ -369,12 +394,11 @@
                                 <option value="İdari İşler Başkanlığı">İdari İşler Başkanlığı</option>
                                 <option value="Cumhurbaşkanlığı Koruma Dairesi Başkanlığı">Cumhurbaşkanlığı Koruma Dairesi Başkanlığı</option>
                             </select>
-    @*<input type="text" data-role="textbox" name="Grup" required="required" data-required-msg="Lütfen grup bilgisini boş bırakmayınız!" data-bind="value:Grup"/>*@
                         </div>
     @*lokasyon*@
-                        <div class="k-edit-label"><label for="Location">Lokasyon</label></div>
-                        <div data-container-for="Location" class="k-edit-field">
-                            <input type="text" data-role="textbox" id="Location" name="Location" required="required" data-required-msg="Lütfen lokasyonu boş bırakmayınız!" data-bind="value:Location"/>
+                        <div class="k-edit-label"><label for="Lokasyon">Lokasyon</label></div>
+                        <div data-container-for="Lokasyon" class="k-edit-field">
+                            <input type="text" data-role="textbox" id="Lokasyon" name="Lokasyon" required="required" data-required-msg="Lütfen lokasyonu boş bırakmayınız!" data-bind="value:Lokasyon"/>
                         </div>
     @*maksKontenjan*@
                         <div class="k-edit-label"><label for="MaksKontenjan">Maksimum Kontenjan</label></div>
@@ -384,12 +408,12 @@
                             data-min-msg="Kontenjan sayısını en az 1 olarak belirleyebilirsiniz!"
                             data-bind="value:MaksKontenjan"/>
                         </div>
-    @*Image*@
-                        <div class="k-edit-label"><label for="Image">Fotoğraf</label></div>
-                        <div data-container-for="Image" class="k-edit-field">
-                            <input id="Image" type="file" data-role="file" name="Image" accept="image/*">
-                            #if(Image != null && Image != ""){#
-                                <img src="/images/#= Image #" style="padding: 5px 5px 5px 5px; max-width:300px; max-height:150px; min-width:100px; min-height:100px;" width="auto" height="auto" >
+    @*Fotograf*@
+                        <div class="k-edit-label"><label for="Fotograf">Fotoğraf</label></div>
+                        <div data-container-for="Fotograf" class="k-edit-field">
+                            <input id="Fotograf" type="file" data-role="file" name="Fotograf" accept="image/*">
+                            #if(Fotograf != null && Fotograf != ""){#
+                                <img alt="etkinlikFotografi" src="/images/#= Fotograf #" style="padding: 5px 5px 5px 5px; max-width:300px; max-height:150px; min-width:100px; min-height:100px;" width="auto" height="auto" >
                             #}#
                         </div>
                     </div>
@@ -409,7 +433,6 @@
 </script>
 <script>
     function detailUserGrid(activityId) {
-        var editTempHeight = document.getElementById("editTempCell").offsetHeight;
         $("#userGrid").kendoGrid({
             dataSource: {
                 type: "jsonp",
@@ -418,8 +441,6 @@
                 },
                 pageSize: 10
             },
-            //height: "auto",
-            //height: editTempHeight,
             width: 450,
             dataBound: onDataBound,
             sortable: true,
@@ -467,8 +488,8 @@
         <label  style="padding: 7px 0px;" for="end">#= kendo.toString(kendo.parseDate(end), 'dd/MM/yyyy HH:mm') #</label>
     </div>
     @*lokasyon*@
-    <div class="k-edit-label"><strong for="Location">Lokasyon</strong></div>
-    <div data-container-for="Location" class="k-edit-field">
-        <label style="padding: 7px 0px;" for="Location">#= Location #</label>
+    <div class="k-edit-label"><strong for="Lokasyon">Lokasyon</strong></div>
+    <div data-container-for="Lokasyon" class="k-edit-field">
+        <label style="padding: 7px 0px;" for="Lokasyon">#= Lokasyon #</label>
     </div>
 </script>

@@ -88,6 +88,7 @@
         <img style="width:75px;height:75px; margin-left:62.5px" src="~/images/cumhurbaskaligi-armasi.png" alt="Cumhurbaşkanlığı Arması">
         <a href="/Activity/Activities">Etkinlik Takvimi</a>
         <a class="activity-AllActivities" href="/ActivityManage/AllActivities">Tüm Etkinlikler</a>
+        <a id="deletedActivities" href="/ActivityManage/DeletedActivities">Silinen Etkinlikler</a>
         <a href="/Activity/InvitedActivities">Davetli Olduğum Etkinlikler</a>
     </div>
 
@@ -127,16 +128,16 @@
         var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
         if (role == "Yetkili" || role == "Admin") {
             $(".activity-AllActivities").show();
-            //if (role == "Admin") {
-            //    $(".activity-ActivityConfirmations").show();
-            //}
-            //else {
-            //    $(".activity-ActivityConfirmations").hide();
-            //}
+            if (role == "Admin") {
+                $("#deletedActivities").show();
+            }
+            else {
+                $("#deletedActivities").hide();
+            }
         }
         else {
-            //$(".activity-ActivityConfirmations").hide();
             $(".activity-AllActivities").hide();
+            $("#deletedActivities").hide();
         }
         var navOpen = true;
         function changeNav() {

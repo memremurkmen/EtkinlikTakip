@@ -196,3 +196,4 @@ C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\V
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Activity\InvitedActivities.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\EditorTemplates\_Layout.cshtml.g.cs
 C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\Shared\_Layout.cshtml.g.cs
+C:\Users\emret\source\repos\EtkinlikTakip\EtkinlikTakip\obj\Debug\net5.0\Razor\Views\ActivityManage\DeletedActivities.cshtml.g.cs

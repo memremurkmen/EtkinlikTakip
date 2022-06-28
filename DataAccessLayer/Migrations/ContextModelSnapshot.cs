@@ -53,10 +53,10 @@ namespace DataAccessLayer.Migrations
                     b.Property<string>("EndTimezone")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Grup")
+                    b.Property<string>("Fotograf")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Image")
+                    b.Property<string>("Grup")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsAllDay")
@@ -68,7 +68,7 @@ namespace DataAccessLayer.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Location")
+                    b.Property<string>("Lokasyon")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MaksKontenjan")
@@ -180,6 +180,9 @@ namespace DataAccessLayer.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .UseIdentityColumn();
+
+                    b.Property<string>("Grup")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");

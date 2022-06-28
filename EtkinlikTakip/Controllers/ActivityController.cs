@@ -22,6 +22,7 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public IActionResult Activities()
         {
+            ViewBag.locationCntrl = true;
             var authUser = GetAuthUser();
             HttpContext.Session.SetString("userName", authUser.Username);
             HttpContext.Session.SetString("userRole", authUser.Role);
@@ -31,6 +32,7 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public virtual JsonResult ActivityRead([DataSourceRequest] DataSourceRequest request)
         {
+            ViewBag.locationCntrl = true;
             var activities = activitymngr.GetConfirmedList();
             foreach (Activity activity in activities)
             {
@@ -46,16 +48,26 @@ namespace EtkinlikTakip.Controllers
             var authUser = GetAuthUser();
             if (authUser != null)
             {
-                if (authUser.Role == "Admin")
+                if (!activitymngr.CheckActivityLocationConflict(activity))
                 {
-                    activity.IsConfirmed = true;
-                    activity.ConfirmedBy = authUser.userId;
-                    activity.ConfirmedTime = DateTime.Now;
+                    if (authUser.Role == "Admin")
+                    {
+                        activity.IsConfirmed = true;
+                        activity.ConfirmedBy = authUser.userId;
+                        activity.ConfirmedTime = DateTime.Now;
+                    }
+                    activity.CreatedTime = DateTime.Now;
+                    activity.CreatedBy = authUser.userId;
+                    activitymngr.ActivityAdd(activity);
+                    ViewBag.locationCntrl = true;
+                    return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
                 }
-                activity.CreatedTime = DateTime.Now;
-                activity.CreatedBy = authUser.userId;
-                activitymngr.ActivityAdd(activity);
-                return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
+                else
+                {
+                    ViewBag.locationCntrl = false;
+                    return View();
+                }
+
             }
             else
             {
@@ -69,12 +81,29 @@ namespace EtkinlikTakip.Controllers
             if (ModelState.IsValid)
             {
                 var authUser = GetAuthUser();
-                activity.UpdatedTime = DateTime.Now;
-                activity.UpdatedBy = authUser.userId;
-                activitymngr.ActivityUpdate(activity);
+                if (authUser.Role == "Admin" || authUser.Grup == activity.Grup)
+                {
+                    if (!activitymngr.CheckActivityLocationConflict(activity))
+                    {
+                        activity.UpdatedTime = DateTime.Now;
+                        activity.UpdatedBy = authUser.userId;
+                        activitymngr.ActivityUpdate(activity);
+                        ViewBag.locationCntrl = true;
+                        return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
+                    }
+                    else
+                    {
+                        ViewBag.locationCntrl = false;
+                        return Json(null);
+                    }
+                }
+                else
+                {
+                    ViewBag.activityAccess = false;
+                    return Json(null);
+                }
             }
-
-            return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
+            return Json(null);
         }
 
         [Authorize(Roles = "Admin,Yetkili")]
@@ -83,7 +112,15 @@ namespace EtkinlikTakip.Controllers
             if (ModelState.IsValid)
             {
                 var authUser = GetAuthUser();
-                activitymngr.ActivityDeleteById(activity.ID, authUser.userId, DateTime.Now);
+                if (authUser.Role == "Admin" || authUser.Grup == activity.Grup)
+                {
+                    activitymngr.ActivityDeleteById(activity.ID, authUser.userId, DateTime.Now);
+                }
+                else
+                {
+                    ViewBag.activityAccess = false;
+                    return Json(null);
+                }
             }
 
             return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
@@ -100,7 +137,8 @@ namespace EtkinlikTakip.Controllers
                 {
                     userId = long.Parse(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Sid)?.Value),
                     Username = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
-                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value
+                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value,
+                    Grup = userClaims.FirstOrDefault(o => o.Type == "Grup")?.Value
                 };
             }
             return null;
@@ -111,39 +149,46 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public IActionResult InviteRequest(long activityId, long invitedUserId)
         {
-            ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
-            ActivityInvite ai = activityInvitemngr.CheckActivityInvite(activityId, invitedUserId);
-            bool aiEmptyKontenjan = activitymngr.CheckEmptyKontenjan(activityId);
-            if (!aiEmptyKontenjan)
+            var authUser = GetAuthUser();
+            if (authUser.Role == "Personel" || authUser.Grup == activitymngr.GetById(activityId).Grup)
             {
-                return Json(new { success = true, responseText = "Yeterli kontenjan yok.", isInvited = true });
-            }
-            else if (ai == null)//etkinliğe başvuru yapmak istenen kişini zaten başvuru yapıp yapmadığı kontrol edilecek
-            {
-                var authUser = GetAuthUser();
-                ActivityInvite invitedUser = new ActivityInvite();
-                invitedUser.InvitedUserId = invitedUserId;
-                invitedUser.ActivityId = activityId;
-                invitedUser.CreatedBy = authUser.userId;
-                invitedUser.CreatedTime = DateTime.Now;
-                if (authUser.Role == "Admin" || authUser.Role == "Yetkili")
+                ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
+                ActivityInvite ai = activityInvitemngr.CheckActivityInvite(activityId, invitedUserId);
+                bool aiEmptyKontenjan = activitymngr.CheckEmptyKontenjan(activityId);
+                if (!aiEmptyKontenjan)
                 {
-                    invitedUser.IsConfirmed = true;
-                    invitedUser.ConfirmedBy = authUser.userId;
-                    invitedUser.ConfirmedTime = DateTime.Now;
+                    return Json(new { success = true, responseText = "Yeterli kontenjan yok.", isInvited = true });
                 }
-                activityInvitemngr.AddActivityInvite(invitedUser);
-                return Json(new { success = true, responseText = "Davet isteği atıldı.", isInvited = false });
-            }
-            else if (ai != null)
-            {
-                if (ai.IsConfirmed)
+                else if (ai == null)//etkinliğe başvuru yapmak istenen kişini zaten başvuru yapıp yapmadığı kontrol edilecek
                 {
-                    return Json(new { success = true, responseText = "Zaten başvuru yapılmış ve başvurun kabul edilmiş.", isInvited = true });
+                    ActivityInvite invitedUser = new ActivityInvite();
+                    invitedUser.InvitedUserId = invitedUserId;
+                    invitedUser.ActivityId = activityId;
+                    invitedUser.CreatedBy = authUser.userId;
+                    invitedUser.CreatedTime = DateTime.Now;
+                    if (authUser.Role == "Admin" || authUser.Role == "Yetkili")
+                    {
+                        invitedUser.IsConfirmed = true;
+                        invitedUser.ConfirmedBy = authUser.userId;
+                        invitedUser.ConfirmedTime = DateTime.Now;
+                    }
+                    activityInvitemngr.AddActivityInvite(invitedUser);
+                    return Json(new { success = true, responseText = "Davet isteği atıldı.", isInvited = false });
                 }
-                return Json(new { success = true, responseText = "Zaten başvuru yapılmış.", isInvited = true });
+                else if (ai != null)
+                {
+                    if (ai.IsConfirmed)
+                    {
+                        return Json(new { success = true, responseText = "Zaten başvuru yapılmış ve başvurun kabul edilmiş.", isInvited = true });
+                    }
+                    return Json(new { success = true, responseText = "Zaten başvuru yapılmış.", isInvited = true });
+                }
+                return Json(new { success = false, responseText = "Davet isteği yollanırken bir hata ile karşılaşıldı!" });
             }
-            return Json(new { success = false, responseText = "Davet isteği yollanırken bir hata ile karşılaşıldı!" });
+            else
+            {
+                return Json(new { success = false, responseText = "Davet isteği yollamak için yetkiniz yok!" });
+            }
         }
 
         [Authorize(Roles = "Admin,Yetkili")]
@@ -156,10 +201,10 @@ namespace EtkinlikTakip.Controllers
 
         public JsonResult GetAllLocations([DataSourceRequest] DataSourceRequest request)
         {
-            IList<string> rooms = new List<string>() { 
+            IList<string> rooms = new List<string>() {
                 { "Büyük Toplantı Salonu" },
                 { "Küçük Toplantı Salonu" },
-                { "Sunum Salonu" } 
+                { "Sunum Salonu" }
             };
             return Json(rooms.ToDataSourceResult(request));
         }
@@ -172,29 +217,23 @@ namespace EtkinlikTakip.Controllers
             return Json(users);
         }
 
+
+
+
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public IActionResult InvitedActivities()
         {
             var authUser = GetAuthUser();
             HttpContext.Session.SetString("userName", authUser.Username);
             HttpContext.Session.SetString("userRole", authUser.Role);
-            return View();
+            return View(activitymngr.GetListOrderByCreatedTimeAndByUserId(authUser.userId));
         }
-
-
-        [Authorize(Roles = "Admin,Yetkili,Personel")]
-        public ActionResult ReadInvitedActivities([DataSourceRequest] DataSourceRequest request)
-        {
-            var authUser = GetAuthUser();
-            return Json(activitymngr.GetListOrderByCreatedTimeAndByUserId(authUser.userId).ToDataSourceResult(request));
-        }
-
 
         [Authorize(Roles = "Admin,Yetkili")]
         public ActionResult GetConfirmedActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)
         {
             ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
-            var users = activityInvitemngr.GetInvitees(activityId,true);
+            var users = activityInvitemngr.GetInvitees(activityId, true);
             return Json(users.ToDataSourceResult(request));
         }
     }

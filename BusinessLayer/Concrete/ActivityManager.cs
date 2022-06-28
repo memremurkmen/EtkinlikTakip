@@ -49,6 +49,10 @@ namespace BusinessLayer.Concrete
         {
             return _activityDal.CheckEmptyKontenjan(activityId);
         }
+        public bool CheckActivityLocationConflict(Activity activity)
+        {
+            return _activityDal.CheckActivityLocationConflict(activity);
+        }
 
         public IList<Activity> GetConfirmedList()
         {
@@ -59,13 +63,17 @@ namespace BusinessLayer.Concrete
         {
             return _activityDal.GetListOrderByCreatedTime();
         }
-        
+        public IList<ActivityViewModel> GetListOrderByDeletedTime()
+        {
+            return _activityDal.GetListOrderByDeletedTime();
+        }
+
         public IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId)
         {
             return _activityDal.GetListOrderByCreatedTimeAndByUserId(userId);
         }
 
-       
+
 
         public void ChangeActivityConfirmation(long activityId, bool isConfirmed, long confirmedBy, DateTime confirmedTime)
         {

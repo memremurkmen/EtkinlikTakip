@@ -40,8 +40,8 @@ namespace EtkinlikTakip
                 .AddCookie(x =>
                 {
                     x.Cookie.Name = "UserAuthenticateCookie";
-                    x.LoginPath = "/Login/Login";
-                    x.AccessDeniedPath = "/Login/Login";
+                    x.LoginPath = "/Login";
+                    x.AccessDeniedPath = "/Login";
                 });
 
             services.AddAuthorization(options =>

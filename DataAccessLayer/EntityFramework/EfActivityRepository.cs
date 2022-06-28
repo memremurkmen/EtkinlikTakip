@@ -39,6 +39,35 @@ namespace DataAccessLayer.EntityFramework
             }
             return false;
         }
+        public bool CheckActivityLocationConflict(Activity activity)
+        {
+            IList<Activity> activities = c.Activity.Where(a => a.Lokasyon == activity.Lokasyon && a.IsDeleted == false && a.ID != activity.ID).Select(a => new Activity
+            {
+                Start = a.Start,
+                End = a.End,
+                IsAllDay = a.IsAllDay
+            }).ToList();
+            bool locationConflict = false;
+            foreach (Activity actvty in activities)
+            {
+                if (actvty.IsAllDay && activity.IsAllDay)
+                {
+                    if (DateTime.Compare(actvty.Start, activity.Start) == 0)
+                    {
+                        locationConflict = true;
+                        break;
+                    }
+                }
+                else if ((DateTime.Compare(actvty.Start, activity.Start) == -1 && DateTime.Compare(actvty.End, activity.Start) == 1) ||
+                    (DateTime.Compare(actvty.Start, activity.End) == -1 && DateTime.Compare(actvty.End, activity.End) == 1))
+                {
+                    locationConflict = true;
+                    break;
+                }
+            }
+
+            return locationConflict;
+        }
 
         public void DeleteActivityById(long activityId, long deletedBy, DateTime deletedTime)
         {
@@ -68,18 +97,33 @@ namespace DataAccessLayer.EntityFramework
                               }).OrderByDescending(a => a.Activity.CreatedTime).ToList();
             return activityVM;
         }
-        public IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId)
+        public IList<ActivityViewModel> GetListOrderByDeletedTime()
         {
-            var activityVM = (from ai in c.ActivityInvite
-                              .Include(a => a.InvitedUser)
-                              .Include(a => a.AIActivity)
-                              .Include(a => a.AICreatedUser)
-                              where ai.IsDeleted == false && ai.IsConfirmed == true && ai.InvitedUserId == userId
+            var activityVM = (from a in c.Activity
+                              .Include(a => a.CreatedUser)
+                              .Include(a => a.UpdatedUser)
+                              .Include(a => a.ConfirmedUser)
+                              where a.IsDeleted == true
                               select new ActivityViewModel
                               {
-                                  ActivityInvite = ai,
-                                  ActivityID = ai.AIActivity.ID,
-                                  Activity = ai.AIActivity
+                                  Activity = a,
+                                  ActivityID = a.ID
+                              }).OrderByDescending(a => a.Activity.DeletedTime).ToList();
+            return activityVM;
+        }
+        public IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId)
+        {
+            var activityVM = (from a in c.Activity
+                              .Include(a => a.CreatedUser)
+                              .Include(a => a.UpdatedUser)
+                              .Include(a => a.ConfirmedUser)
+                              join ai in c.ActivityInvite
+                              on a.ID equals ai.ActivityId
+                              where a.IsDeleted == false && ai.InvitedUserId == userId
+                              select new ActivityViewModel
+                              {
+                                  ActivityID = a.ID,
+                                  Activity = a
                               }).OrderByDescending(a => a.Activity.CreatedTime).ToList();
             return activityVM;
         }

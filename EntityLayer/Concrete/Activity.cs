@@ -21,8 +21,8 @@ namespace EntityLayer.Concrete
         public string RecurrenceRule { get; set; }
         public string RecurrenceException { get; set; }
         
-        public string Image { get; set; }
-        public string Location { get; set; }
+        public string Fotograf { get; set; }
+        public string Lokasyon { get; set; }
         public string Grup { get; set; }
         public int MaksKontenjan { get; set; }
 

@@ -15,9 +15,11 @@ namespace BusinessLayer.Abstract
         void ChangeActivityConfirmation(long activityId, bool isConfirmed, long confirmedBy, DateTime confirmedTime);
         IList<Activity> GetList();
         IList<ActivityViewModel> GetListOrderByCreatedTime();
+        IList<ActivityViewModel> GetListOrderByDeletedTime();
         IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId);
         IList<Activity> GetConfirmedList();
         Activity GetById(long id);
         bool CheckEmptyKontenjan(long activityId);
+        bool CheckActivityLocationConflict(Activity activity);
     }
 }

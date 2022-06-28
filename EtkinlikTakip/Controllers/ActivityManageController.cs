@@ -118,6 +118,17 @@ namespace EtkinlikTakip.Controllers
                 return View();
             }
         }
+
+        [Authorize(Roles = "Admin")]
+        public IActionResult DeletedActivities()
+        {
+            var authUser = GetAuthUser();
+            HttpContext.Session.SetString("userName", authUser.Username);
+            HttpContext.Session.SetString("userRole", authUser.Role);
+            return View(activitymngr.GetListOrderByDeletedTime());
+        }
+
+
         private UserModel GetAuthUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
@@ -129,7 +140,8 @@ namespace EtkinlikTakip.Controllers
                 {
                     userId = long.Parse(userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Sid)?.Value),
                     Username = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
-                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value
+                    Role = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Role)?.Value,
+                    Grup = userClaims.FirstOrDefault(o => o.Type == "Grup")?.Value
                 };
             }
             return null;
