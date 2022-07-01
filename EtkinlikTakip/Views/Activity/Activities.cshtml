@@ -47,6 +47,7 @@
     {
     e.Edit("scheduler_edit");
     e.Save("scheduler_save");
+    e.DataBinding("onActivityDataBind");
     })
     .Timezone("Etc/UTC")
     .Footer(false)
@@ -84,7 +85,6 @@
     });
     })
     .DataSource(d => d
-
     .Model(m =>
     {
     m.Id(f => f.ID);
@@ -100,8 +100,8 @@
     m.Field(f=> f.IsDeleted).DefaultValue(false);
     })
     .Read("ActivityRead", "Activity")
-    @*.Create("ActivityCreate", "Activity")*@
-    .Create("ActivityCreate", "Activity").Events(a => a.RequestEnd("locationErrPopup"))
+    .Create("ActivityCreate", "Activity")
+    @*.Create("ActivityCreate", "Activity").Events(a => a.RequestEnd("locationErrPopup"))*@
     .Update("ActivityUpdate", "Activity")
     .Destroy("ActivityDestroy", "Activity")
     .Filter(filters =>
@@ -116,11 +116,12 @@
     )
 </div>
 <script type="text/javascript">
-    function locationErrPopup(e, x) {
+    function locationErrPopup(e, x) { debugger
         console.log(e);
-        var locationCntrl = '@ViewBag.locationCntrl';
+        console.log("locationErrPopup'a girdi");
+        var locationCntrl = '@ViewData["locationCntrl"]';
         console.log(locationCntrl);
-        if ('@ViewBag.locationCntrl' == false) {
+        if (locationCntrl.toLowerCase() == 'false') {
             swal(
                 'Etkinlik Oluşturulamadı!',
                 'Oluşturmak istediğiniz etkinlik başka bir etkinlik ile çakışıyor.',
@@ -139,9 +140,8 @@
         }
     });
     function onActivityDataBind(e) {
-        var locationCntrl = '@ViewBag.locationCntrl';
-        console.log(locationCntrl);
-        if ('@ViewBag.locationCntrl' == false) {
+        var locationCntrl = '@ViewData["locationCntrl"]';
+        if (locationCntrl.toLowerCase() == 'false') {
             swal(
                 'Etkinlik Oluşturulamadı!',
                 'Oluşturmak istediğiniz etkinlik başka bir etkinlik ile çakışıyor.',
@@ -191,8 +191,11 @@
     })
     function scheduler_save(e) {
 
-        console.log("Saving", e.event.title);
+        //console.log("Saving", e.event.title);
     }
+function kaydetBtn(e) {
+
+}
     function scheduler_edit(e) {
         var role = '@HttpContextAccessor.HttpContext.Session.GetString("userRole")';
         var userId = '@HttpContextAccessor.HttpContext.Session.GetString("userId")';
@@ -206,6 +209,7 @@
                 "class='k-button k-button-md k-rounded-md k-button-solid k-button-solid-success'>");
         }
         else {
+            //e.container.find(".k-scheduler-update").onclick("kaydetBtn");
             detailUserGrid(e.event.id);
         }
     }

@@ -63,6 +63,10 @@ namespace BusinessLayer.Concrete
         {
             return _activityDal.GetListOrderByCreatedTime();
         }
+        public IList<ActivityViewModel> GetListOrderByCreatedTime(string userGrup)
+        {
+            return _activityDal.GetListOrderByCreatedTime(userGrup);
+        }
         public IList<ActivityViewModel> GetListOrderByDeletedTime()
         {
             return _activityDal.GetListOrderByDeletedTime();

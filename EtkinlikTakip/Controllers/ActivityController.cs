@@ -16,13 +16,22 @@ namespace EtkinlikTakip.Controllers
 {
     public class ActivityController : Controller
     {
-        ActivityManager activitymngr = new ActivityManager(new EfActivityRepository());
+        ActivityManager activitymngr;
+        ActivityInviteManager activityInvitemngr;
+        UserManager usermngr;
+
+        public ActivityController()
+        {
+            activitymngr = new ActivityManager(new EfActivityRepository());
+            activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
+            usermngr = new UserManager(new EfUserRepository());
+        }
 
         [HttpGet]
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public IActionResult Activities()
         {
-            ViewBag.locationCntrl = true;
+            //ViewData["locationCntrl"] = true;
             var authUser = GetAuthUser();
             HttpContext.Session.SetString("userName", authUser.Username);
             HttpContext.Session.SetString("userRole", authUser.Role);
@@ -32,7 +41,7 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili,Personel")]
         public virtual JsonResult ActivityRead([DataSourceRequest] DataSourceRequest request)
         {
-            ViewBag.locationCntrl = true;
+            //ViewData["locationCntrl"] = true;
             var activities = activitymngr.GetConfirmedList();
             foreach (Activity activity in activities)
             {
@@ -59,13 +68,13 @@ namespace EtkinlikTakip.Controllers
                     activity.CreatedTime = DateTime.Now;
                     activity.CreatedBy = authUser.userId;
                     activitymngr.ActivityAdd(activity);
-                    ViewBag.locationCntrl = true;
+                    ViewData["locationCntrl"] = true;
                     return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
                 }
                 else
                 {
-                    ViewBag.locationCntrl = false;
-                    return View();
+                    ViewData["locationCntrl"] = false;
+                    return Json(new[] { activity }.ToDataSourceResult(request, ModelState));
                 }
 
             }
@@ -152,7 +161,6 @@ namespace EtkinlikTakip.Controllers
             var authUser = GetAuthUser();
             if (authUser.Role == "Personel" || authUser.Grup == activitymngr.GetById(activityId).Grup)
             {
-                ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
                 ActivityInvite ai = activityInvitemngr.CheckActivityInvite(activityId, invitedUserId);
                 bool aiEmptyKontenjan = activitymngr.CheckEmptyKontenjan(activityId);
                 if (!aiEmptyKontenjan)
@@ -194,7 +202,6 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili")]
         public JsonResult GetAllUsers()
         {
-            UserManager usermngr = new UserManager(new EfUserRepository());
             var userList = usermngr.GetList();
             return Json(userList);
         }
@@ -212,8 +219,7 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili")]
         public JsonResult GetInvitedUsers(long Id)
         {
-            ActivityInviteManager aimngr = new ActivityInviteManager(new EfActivityInviteRepository());
-            var users = aimngr.GetInvitees(Id);
+            var users = activityInvitemngr.GetInvitees(Id);
             return Json(users);
         }
 
@@ -232,7 +238,6 @@ namespace EtkinlikTakip.Controllers
         [Authorize(Roles = "Admin,Yetkili")]
         public ActionResult GetConfirmedActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)
         {
-            ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
             var users = activityInvitemngr.GetInvitees(activityId, true);
             return Json(users.ToDataSourceResult(request));
         }

@@ -76,7 +76,8 @@
              "<div class='activity-details'>" +
                  "<ul>" +
                      "<li><label><strong>Başlık:</strong></label> #= Activity.Title #</li>" +
-                     "<li><label><strong>Açıklama:</strong></label> #= Activity.Description #</li>" +
+                     "#if(Activity.Description != null && Activity.Description != ''){#" +
+                     "<li><label><strong>Açıklama:</strong></label> #= Activity.Description #</li>#}#" +
                      "<li><label><strong>Grup:</strong></label> #= Activity.Grup #</li>" +
                      "<li><label><strong>Lokasyon:</strong></label> #= Activity.Lokasyon #</li>" +
                      "<li><label><strong>Kontenjan:</strong></label> #= Activity.MaksKontenjan #</li>" +

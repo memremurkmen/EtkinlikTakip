@@ -10,6 +10,7 @@ namespace DataAccessLayer.Abstract
     public interface IActivityDal : IGenericDal<Activity>
     {
         IList<ActivityViewModel> GetListOrderByCreatedTime();
+        IList<ActivityViewModel> GetListOrderByCreatedTime(string grup);
         IList<ActivityViewModel> GetListOrderByDeletedTime();
         IList<ActivityViewModel> GetListOrderByCreatedTimeAndByUserId(long userId);
         IList<Activity> GetConfirmedList();

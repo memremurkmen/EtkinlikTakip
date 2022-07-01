@@ -97,6 +97,20 @@ namespace DataAccessLayer.EntityFramework
                               }).OrderByDescending(a => a.Activity.CreatedTime).ToList();
             return activityVM;
         }
+        public IList<ActivityViewModel> GetListOrderByCreatedTime(string userGrup)
+        {
+            var activityVM = (from a in c.Activity
+                              .Include(a => a.CreatedUser)
+                              .Include(a => a.UpdatedUser)
+                              .Include(a => a.ConfirmedUser)
+                              where a.IsDeleted == false && a.Grup == userGrup
+                              select new ActivityViewModel
+                              {
+                                  Activity = a,
+                                  ActivityID = a.ID
+                              }).OrderByDescending(a => a.Activity.CreatedTime).ToList();
+            return activityVM;
+        }
         public IList<ActivityViewModel> GetListOrderByDeletedTime()
         {
             var activityVM = (from a in c.Activity

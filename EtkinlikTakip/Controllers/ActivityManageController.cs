@@ -16,8 +16,13 @@ namespace EtkinlikTakip.Controllers
 {
     public class ActivityManageController : Controller
     {
-        ActivityManager activitymngr = new ActivityManager(new EfActivityRepository());
-
+        ActivityManager activitymngr;
+        ActivityInviteManager activityInvitemngr;
+        public ActivityManageController()
+        {
+            activitymngr = new ActivityManager(new EfActivityRepository());
+            activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
+        }
 
         [Authorize(Roles = "Admin,Yetkili")]
         public IActionResult AllActivities()
@@ -25,19 +30,12 @@ namespace EtkinlikTakip.Controllers
             var authUser = GetAuthUser();//düzenlenecek
             HttpContext.Session.SetString("userName", authUser.Username);
             HttpContext.Session.SetString("userRole", authUser.Role);
-            return View(activitymngr.GetListOrderByCreatedTime());
-        }
-
-        [Authorize(Roles = "Admin,Yetkili")]
-        public ActionResult ReadActivity([DataSourceRequest] DataSourceRequest request)
-        {
-            return Json(activitymngr.GetListOrderByCreatedTime().ToDataSourceResult(request));
+            return View(activitymngr.GetListOrderByCreatedTime(authUser.Grup));
         }
 
         [Authorize(Roles = "Admin,Yetkili")]
         public ActionResult GetActivityInvitees([DataSourceRequest] DataSourceRequest request, long activityId)
         {
-            ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
             return Json(activityInvitemngr.GetInvitees(activityId).ToDataSourceResult(request));
         }
 
@@ -91,7 +89,6 @@ namespace EtkinlikTakip.Controllers
         {
             try
             {
-                ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
                 var authUser = GetAuthUser();
                 activityInvitemngr.ChangeInviteConfirmation(invitedUserId, true, authUser.userId, DateTime.Now);
                 return Json(ModelState.ToDataSourceResult());
@@ -108,7 +105,6 @@ namespace EtkinlikTakip.Controllers
         {
             try
             {
-                ActivityInviteManager activityInvitemngr = new ActivityInviteManager(new EfActivityInviteRepository());
                 var authUser = GetAuthUser();
                 activityInvitemngr.DeleteActivityInviteById(invitedUserId, authUser.userId, DateTime.Now);
                 return Json(ModelState.ToDataSourceResult());
